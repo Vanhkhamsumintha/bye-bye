@@ -1,1 +1,1305 @@
+<!doctype html>
+<html lang="lo">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>ເກມກຳຈັດຈຸດອ່ອນ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+@font-face{font-family:"Phetsarath OT";src:local("Phetsarath OT")}
+:root{
+ --bg:#fff8fc;--card:rgba(255,255,255,.92);--text:#493d57;--muted:#8b7f98;
+ --pink:#ff8fba;--pink2:#ffb7d5;--purple:#9b8cff;--blue:#7dd8ff;
+ --mint:#8ee6c1;--yellow:#ffe08a;--danger:#ff8d9d;--line:#f1ddea;
+ --shadow:0 20px 60px rgba(137,105,155,.15)
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;font-family:"Phetsarath OT","Noto Sans Lao",sans-serif;color:var(--text);
+ background:radial-gradient(circle at 10% 10%,#ffe8f2 0,transparent 28%),radial-gradient(circle at 90% 12%,#e7e0ff 0,transparent 30%),linear-gradient(135deg,#fff8fc,#f7fbff)}
+body:before,body:after{content:"";position:fixed;z-index:-1;border-radius:50%;filter:blur(2px);opacity:.55;pointer-events:none}
+body:before{width:220px;height:220px;background:#c9f4ff;right:-70px;bottom:12%}
+body:after{width:180px;height:180px;background:#ffe6a9;left:-60px;top:45%}
+button,input{font:inherit}button{cursor:pointer;border:0}
+.app{min-height:100vh;display:flex;justify-content:center;padding:clamp(12px,3vw,34px)}
+.shell{width:min(1180px,100%);display:flex;flex-direction:column;gap:18px}
+.top{display:flex;justify-content:space-between;align-items:center;padding:4px 4px}
+.logo{font-size:clamp(21px,3vw,30px);font-weight:900;letter-spacing:.2px}.logo small{display:block;font-size:11px;color:var(--muted);font-weight:600}
+.view{position:relative;overflow:hidden;background:var(--card);backdrop-filter:blur(12px);border:2px solid rgba(255,255,255,.8);
+ border-radius:32px;box-shadow:var(--shadow);padding:clamp(20px,4vw,46px);min-height:calc(100vh - 100px)}
+.view:before{content:"";position:absolute;inset:0;background:linear-gradient(120deg,rgba(255,255,255,.55),transparent 55%);pointer-events:none}
+.center{position:relative;z-index:1;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;margin-inline:auto}
+h1{font-size:clamp(30px,5vw,54px);margin:0 0 10px;line-height:1.2}h2{font-size:clamp(23px,3vw,34px);margin:0 0 10px}p{color:var(--muted)}
+.grid{width:min(820px,100%);display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;margin:30px auto 0}
+.role{width:100%;min-height:190px;padding:28px;border:2px solid #f4e5ef;border-radius:26px;background:linear-gradient(145deg,#fff,#fff6fb);
+ text-align:center;transition:.2s;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 12px 28px rgba(160,125,170,.08)}
+.role:hover{transform:translateY(-5px);border-color:var(--pink2);box-shadow:0 18px 36px rgba(160,125,170,.14)}
+.role:active{transform:translateY(2px) scale(.985)}
+.role .ico{font-size:48px;filter:drop-shadow(0 5px 5px rgba(120,80,130,.12))}.role strong{display:block;font-size:24px;margin-top:10px}.role span{color:var(--muted)}
+.btn,.choice,.vote{transition:transform .12s ease,box-shadow .12s ease,background .15s ease,border-color .15s ease}
+.btn:active,.choice:active,.vote:active{transform:translateY(3px) scale(.985)}
+.btn:focus-visible,.choice:focus-visible,.vote:focus-visible{outline:3px solid rgba(155,140,255,.28);outline-offset:3px}
+.btn{min-height:54px;min-width:220px;padding:12px 24px;border-radius:17px;font-weight:800;font-size:17px;
+ background:#f4eef7;color:var(--text);display:inline-flex;align-items:center;justify-content:center;text-align:center}
+.btn.primary{background:linear-gradient(135deg,var(--pink),var(--purple));color:#fff;box-shadow:0 12px 26px rgba(255,143,186,.25)}
+.btn.green{background:linear-gradient(135deg,#72d9ae,var(--mint));color:#fff}.btn.red{background:linear-gradient(135deg,#ff8d9d,#ffb2bb);color:#fff}.btn:disabled{opacity:.45;cursor:not-allowed}
+.form{width:min(460px,100%);display:grid;gap:14px;margin:20px auto 0}
+.input{width:100%;height:58px;border:2px solid var(--line);border-radius:17px;padding:0 18px;background:#fffafd;outline:none;font-size:19px;color:var(--text)}
+.input:focus{border-color:var(--purple);box-shadow:0 0 0 5px rgba(155,140,255,.10);background:#fff}
+.roomcode{font-size:clamp(42px,8vw,82px);font-weight:900;letter-spacing:8px;margin:12px auto;text-align:center;
+ color:#8b79d9;text-shadow:0 5px 0 #eee6ff}
+.status{padding:10px 16px;background:#f5eff8;border-radius:999px;color:var(--muted);font-size:13px;font-weight:700;text-align:center;white-space:nowrap}
+.status.online{background:#e9fff5;color:#368b6b}.status.offline{background:#fff0f3;color:#bd6373}.status.connecting{background:#f5f0ff;color:#806fc0}
+.players{width:min(900px,100%);display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:20px auto 0}
+.player{padding:15px;border:2px solid var(--line);border-radius:18px;background:#fff;font-weight:700;text-align:center;box-shadow:0 7px 18px rgba(140,110,150,.06)}
+.player.dead{opacity:.38;text-decoration:line-through}
+.actions{width:100%;display:flex;gap:12px;flex-wrap:wrap;justify-content:center;align-items:center;margin:24px auto 0}
+.actions .btn{min-width:180px}
+.game{position:relative;z-index:1;display:flex;flex-direction:column;gap:20px}
+.phase{text-align:center;color:#8b7f98;font-weight:800;background:#fff4fa;border:1px solid #f7dfeb;padding:8px 16px;border-radius:999px;margin-inline:auto}
+.question{font-size:clamp(28px,5vw,52px);font-weight:900;line-height:1.45;text-align:center;margin:4px auto;max-width:980px;color:#4e415b}
+.question mjx-container{font-size:1.02em!important}
+.choices{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.choice{min-height:92px;border:2px solid var(--line);border-radius:22px;background:linear-gradient(145deg,#fff,#fffafd);
+ font-size:clamp(19px,2.4vw,28px);font-weight:700;padding:16px;box-shadow:0 8px 18px rgba(150,115,160,.06)}
+.choice:hover{border-color:var(--purple);background:#f8f6ff;transform:translateY(-2px)}
+.choice.correct{border-color:#68cfa1;background:#edfff7}.choice.wrong{border-color:#ff9cab;background:#fff1f4}
+.timer-wrap{display:flex;justify-content:center;align-items:center;margin:0 auto 4px}
+.timer{--progress:100%;width:132px;height:132px;border-radius:50%;display:grid;place-items:center;position:relative;
+ background:conic-gradient(var(--pink) var(--progress),#f0e7f1 0);box-shadow:0 10px 26px rgba(180,120,160,.16)}
+.timer:before{content:"";position:absolute;inset:7px;border-radius:50%;background:linear-gradient(145deg,#fff,#fff8fc);box-shadow:inset 0 0 0 2px #f5e8f0}
+.timer:after{content:"";position:absolute;inset:13px;border-radius:50%;border:2px dashed #ead7e4}
+.timer b{position:relative;z-index:2;font-size:34px;color:#6f5b80}
+.timer small{position:absolute;z-index:2;top:78px;font-size:10px;color:#a18ca9;font-weight:800}
+.votegrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px}
+.vote{min-height:100px;border-radius:22px;background:#fff8fc;border:2px solid var(--line);font-weight:800;font-size:20px;box-shadow:0 8px 18px rgba(150,115,160,.06)}
+.vote:hover,.vote.selected{border-color:var(--pink);background:#fff0f7;transform:translateY(-2px)}
+.duel-board{width:min(760px,100%);display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:center;margin:4px auto 6px}
+.duel-card{padding:16px;border:2px solid #f0dfeb;border-radius:22px;background:#fff;box-shadow:0 10px 22px rgba(150,115,160,.07)}
+.duel-card.me{background:#f5f2ff;border-color:#dcd4ff}.duel-card strong{display:block;font-size:20px}.duel-score{font-size:42px;font-weight:900;line-height:1.1;color:#7b69c9}.duel-vs{font-weight:900;color:#a18ca9}
+.duel-round{display:inline-block;padding:7px 14px;border-radius:999px;background:#fff2a9;color:#7f6a28;font-weight:900}
+.result{padding:30px;border-radius:28px;text-align:center;border:2px solid rgba(255,255,255,.8);box-shadow:0 15px 32px rgba(150,115,160,.10);min-width:min(680px,100%)}
+.result.good{background:linear-gradient(145deg,#edfff7,#f8fffb);border-color:#c9f2df}.result.bad{background:linear-gradient(145deg,#fff1f4,#fffafb);border-color:#ffd8df}
+.result.neutral{background:linear-gradient(145deg,#f4f0ff,#fff);border-color:#ddd5ff}
+.note{font-size:14px;color:var(--muted);text-align:center;margin-top:4px}
+.hidden{display:none!important}
+.math-fix mjx-container{margin:.2em 0!important}
+.vote-picked{margin:18px auto;padding:28px 22px;max-width:520px;text-align:center;border:2px solid #eadcf3;border-radius:28px;background:linear-gradient(145deg,#fff,#fff7fc);box-shadow:0 14px 32px rgba(165,125,180,.15);animation:popIn .35s ease}.vote-picked-icon{width:64px;height:64px;margin:0 auto 10px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(145deg,#c9f7e5,#d9f4ff);color:#557b72;font-size:34px;font-weight:900;box-shadow:0 8px 20px rgba(120,190,170,.18)}.vote-picked h2{margin:4px 0 8px;color:#735f82}.vote-picked p{margin:0 0 8px;font-size:25px;color:#5f6d7a}.vote-picked span{font-size:15px;color:#9a8ba2;font-weight:700}@keyframes popIn{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
+@media(max-width:700px){
+ .app{padding:8px}.view{border-radius:22px;padding:20px;min-height:calc(100vh - 30px)}
+ .grid,.choices{grid-template-columns:1fr}.role{padding:22px;min-height:150px}.actions .btn,.btn{width:100%;min-width:0}
+ .top{padding:0 5px}.question{font-size:28px}.choice{min-height:72px}.roomcode{letter-spacing:4px}
+ .timer{width:118px;height:118px}.timer b{font-size:30px}.timer small{top:70px}
+ .duel-board{grid-template-columns:1fr 42px 1fr}.duel-card{padding:12px}.duel-score{font-size:34px}
+ .result{min-width:0;width:100%;padding:22px}
+}
+</style>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
+<script>
+window.MathJax={
+ tex:{inlineMath:[["\\(","\\)"],["$","$"]],displayMath:[["\\[","\\]"],["$$","$$"]]},
+ options:{skipHtmlTags:["script","noscript","style","textarea","pre","code"]}
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+<div class="app"><main class="shell">
+<header class="top"><div class="logo">ກຳຈັດຈຸດອ່ອນ<small></small></div><div id="connection" class="status">ກຳລັງເຊື່ອມຕໍ່...</div></header>
+<section id="view" class="view"></section>
+</main></div>
+<script>
+const firebaseConfig={
+ apiKey:"AIzaSyAPi4iqADsCPUXp_OPLDuzpspBoKc1_Rgk",
+ authDomain:"bye-bye-af4cd.firebaseapp.com",
+ projectId:"bye-bye-af4cd",
+ storageBucket:"bye-bye-af4cd.firebasestorage.app",
+ messagingSenderId:"949189607404",
+ appId:"1:949189607404:web:d0a54043984e7c6c5a4ac9",
+ measurementId:"G-2HVF0NLNTB",
+ databaseURL:"https://bye-bye-af4cd-default-rtdb.asia-southeast1.firebasedatabase.app"
+};
+let firebaseReady=false;
+let db=null;
+const view=document.getElementById("view");
+const connectionEl=document.getElementById("connection");
 
+function setConnection(text, cls=""){
+  connectionEl.textContent=text;
+  connectionEl.className="status "+cls;
+}
+
+try{
+  firebase.initializeApp(firebaseConfig);
+  db=firebase.database(firebase.app());
+  firebaseReady=true;
+
+  // ตรวจสอบสถานะการเชื่อมต่อกับ Realtime Database โดยตรง
+  db.ref(".info/connected").on("value",
+    snap=>{
+      if(snap.val()===true){
+        setConnection("ເຊື່ອມຕໍ່ແລ້ວ","online");
+      }else{
+        setConnection("ກຳລັງເຊື່ອມຕໍ່...","connecting");
+      }
+    },
+    error=>{
+      console.error("Firebase connection error:",error);
+      setConnection("ບໍ່ສາມາດເຊື່ອມຕໍ່","offline");
+    }
+  );
+}catch(error){
+  console.error("Firebase initialization error:",error);
+  setConnection("ບໍ່ສາມາດເຊື່ອມຕໍ່","offline");
+}
+
+window.addEventListener("online",()=>firebaseReady&&setConnection("ກຳລັງເຊື່ອມຕໍ່...","connecting"));
+window.addEventListener("offline",()=>setConnection("ບໍ່ມີອິນເຕີເນັດ","offline"));
+const QUESTIONS=[
+  { question:"What is the correct plural form of 'book'?", choices:["books","bookes","bookies","book"], answer:"books" },
+  { question:"What is the opposite of 'big'?", choices:["small","long","high","fast"], answer:"small" },
+  { question:"What is the opposite of 'hot'?", choices:["warm","cold","dry","bright"], answer:"cold" },
+  { question:"Which word means 'happy'?", choices:["sad","glad","angry","tired"], answer:"glad" },
+  { question:"Which word means 'small'?", choices:["large","little","tall","wide"], answer:"little" },
+  { question:"What is the opposite of 'old'?", choices:["young","long","slow","late"], answer:"young" },
+  { question:"Which word is a color?", choices:["table","green","school","teacher"], answer:"green" },
+  { question:"Which word is an animal?", choices:["chair","dog","pencil","house"], answer:"dog" },
+  { question:"Which word is a fruit?", choices:["apple","carrot","rice","bread"], answer:"apple" },
+  { question:"Which word is a vegetable?", choices:["banana","mango","carrot","orange"], answer:"carrot" },
+
+  { question:"What is the English word for 'ແມວ'?", choices:["cat","dog","bird","fish"], answer:"cat" },
+  { question:"What is the English word for 'ໝາ'?", choices:["cat","dog","cow","horse"], answer:"dog" },
+  { question:"What is the English word for 'ນົກ'?", choices:["fish","bird","duck","chicken"], answer:"bird" },
+  { question:"What is the English word for 'ປາ'?", choices:["fish","frog","snake","bird"], answer:"fish" },
+  { question:"What is the English word for 'ງົວ'?", choices:["cow","horse","goat","pig"], answer:"cow" },
+  { question:"What is the English word for 'ມ້າ'?", choices:["cow","horse","sheep","dog"], answer:"horse" },
+  { question:"What is the English word for 'ແບ້'?", choices:["goat","cat","cow","duck"], answer:"goat" },
+  { question:"What is the English word for 'ໝູ'?", choices:["pig","sheep","horse","rabbit"], answer:"pig" },
+  { question:"What is the English word for 'ໄກ່'?", choices:["chicken","duck","bird","goat"], answer:"chicken" },
+  { question:"What is the English word for 'ເປັດ'?", choices:["duck","chicken","fish","frog"], answer:"duck" },
+
+  { question:"Which word means 'ພໍ່'?", choices:["mother","father","brother","uncle"], answer:"father" },
+  { question:"Which word means 'ແມ່'?", choices:["father","sister","mother","daughter"], answer:"mother" },
+  { question:"Which word means 'ອ້າຍ'?", choices:["brother","sister","father","son"], answer:"brother" },
+  { question:"Which word means 'ເອື້ອຍ'?", choices:["brother","mother","sister","daughter"], answer:"sister" },
+  { question:"Which word means 'ລູກຊາຍ'?", choices:["son","father","boy","brother"], answer:"son" },
+  { question:"Which word means 'ລູກສາວ'?", choices:["daughter","mother","girl","sister"], answer:"daughter" },
+  { question:"Which word means 'ເດັກຊາຍ'?", choices:["boy","man","son","father"], answer:"boy" },
+  { question:"Which word means 'ເດັກຍິງ'?", choices:["girl","woman","daughter","mother"], answer:"girl" },
+  { question:"Which word means 'ຜູ້ຊາຍ'?", choices:["boy","man","father","son"], answer:"man" },
+  { question:"Which word means 'ຜູ້ຍິງ'?", choices:["girl","woman","mother","daughter"], answer:"woman" },
+
+  { question:"Choose the correct sentence.", choices:["I am a student.","I is a student.","I are a student.","I be a student."], answer:"I am a student." },
+  { question:"Choose the correct sentence.", choices:["She is a teacher.","She are a teacher.","She am a teacher.","She be a teacher."], answer:"She is a teacher." },
+  { question:"Choose the correct sentence.", choices:["They are students.","They is students.","They am students.","They be students."], answer:"They are students." },
+  { question:"Choose the correct sentence.", choices:["He is my friend.","He are my friend.","He am my friend.","He be my friend."], answer:"He is my friend." },
+  { question:"Choose the correct sentence.", choices:["We are happy.","We is happy.","We am happy.","We be happy."], answer:"We are happy." },
+  { question:"Choose the correct sentence.", choices:["You are kind.","You is kind.","You am kind.","You be kind."], answer:"You are kind." },
+  { question:"Choose the correct sentence.", choices:["It is a cat.","It are a cat.","It am a cat.","It be a cat."], answer:"It is a cat." },
+  { question:"Choose the correct sentence.", choices:["My name is Anna.","My name are Anna.","My name am Anna.","My name be Anna."], answer:"My name is Anna." },
+  { question:"Choose the correct sentence.", choices:["This is my book.","This are my book.","This am my book.","This be my book."], answer:"This is my book." },
+  { question:"Choose the correct sentence.", choices:["These are my pencils.","These is my pencils.","These am my pencils.","These be my pencils."], answer:"These are my pencils." },
+
+  { question:"What is the plural form of 'cat'?", choices:["cats","cates","caties","cat"], answer:"cats" },
+  { question:"What is the plural form of 'dog'?", choices:["dogs","doges","dogies","dog"], answer:"dogs" },
+  { question:"What is the plural form of 'box'?", choices:["boxs","boxes","boxies","box"], answer:"boxes" },
+  { question:"What is the plural form of 'bus'?", choices:["buses","buss","busies","bus"], answer:"buses" },
+  { question:"What is the plural form of 'baby'?", choices:["babys","babyes","babies","baby"], answer:"babies" },
+  { question:"What is the plural form of 'book'?", choices:["books","bookes","bookies","book"], answer:"books" },
+  { question:"What is the plural form of 'class'?", choices:["class","classes","classies","classs"], answer:"classes" },
+  { question:"What is the plural form of 'apple'?", choices:["apples","applees","applies","apple"], answer:"apples" },
+  { question:"What is the plural form of 'teacher'?", choices:["teachers","teachies","teacheres","teacher"], answer:"teachers" },
+  { question:"What is the plural form of 'student'?", choices:["students","studentes","studies","student"], answer:"students" },
+
+  { question:"Which word is a verb?", choices:["run","school","blue","happy"], answer:"run" },
+  { question:"Which word is a verb?", choices:["eat","table","green","teacher"], answer:"eat" },
+  { question:"Which word is a verb?", choices:["read","book","red","student"], answer:"read" },
+  { question:"Which word is a verb?", choices:["write","pencil","big","school"], answer:"write" },
+  { question:"Which word is a verb?", choices:["sleep","bed","small","blue"], answer:"sleep" },
+  { question:"Which word is a verb?", choices:["sing","song","beautiful","class"], answer:"sing" },
+  { question:"Which word is a verb?", choices:["jump","chair","yellow","boy"], answer:"jump" },
+  { question:"Which word is a verb?", choices:["swim","water","fish","cold"], answer:"swim" },
+  { question:"Which word is a verb?", choices:["walk","road","long","house"], answer:"walk" },
+  { question:"Which word is a verb?", choices:["play","game","happy","school"], answer:"play" },
+
+  { question:"What time is 7:00?", choices:["seven o'clock","eight o'clock","six o'clock","ten o'clock"], answer:"seven o'clock" },
+  { question:"What time is 12:00?", choices:["ten o'clock","eleven o'clock","twelve o'clock","one o'clock"], answer:"twelve o'clock" },
+  { question:"Which day comes after Monday?", choices:["Sunday","Tuesday","Wednesday","Friday"], answer:"Tuesday" },
+  { question:"Which day comes after Friday?", choices:["Thursday","Saturday","Sunday","Monday"], answer:"Saturday" },
+  { question:"Which day comes before Sunday?", choices:["Friday","Saturday","Monday","Tuesday"], answer:"Saturday" },
+  { question:"Which month comes after January?", choices:["March","February","April","December"], answer:"February" },
+  { question:"Which month comes before December?", choices:["October","November","January","September"], answer:"November" },
+  { question:"How many days are there in a week?", choices:["five","six","seven","eight"], answer:"seven" },
+  { question:"How many months are there in a year?", choices:["ten","eleven","twelve","thirteen"], answer:"twelve" },
+  { question:"How many hours are there in a day?", choices:["12","18","24","30"], answer:"24" },
+
+  { question:"Which word means 'ຫນຶ່ງ'?", choices:["one","two","three","four"], answer:"one" },
+  { question:"Which word means 'ສອງ'?", choices:["one","two","three","five"], answer:"two" },
+  { question:"Which word means 'ສາມ'?", choices:["two","three","four","six"], answer:"three" },
+  { question:"Which word means 'ສີ່'?", choices:["three","four","five","seven"], answer:"four" },
+  { question:"Which word means 'ຫ້າ'?", choices:["four","five","six","eight"], answer:"five" },
+  { question:"Which word means 'ສິບ'?", choices:["eight","nine","ten","twelve"], answer:"ten" },
+  { question:"What number comes after 19?", choices:["18","20","21","29"], answer:"20" },
+  { question:"What number comes before 50?", choices:["48","49","51","40"], answer:"49" },
+  { question:"What is five plus five?", choices:["8","9","10","11"], answer:"10" },
+  { question:"What is ten minus three?", choices:["5","6","7","8"], answer:"7" },
+
+  { question:"Which word means 'ສີແດງ'?", choices:["red","blue","green","yellow"], answer:"red" },
+  { question:"Which word means 'ສີຟ້າ'?", choices:["black","blue","white","brown"], answer:"blue" },
+  { question:"Which word means 'ສີຂຽວ'?", choices:["green","red","pink","gray"], answer:"green" },
+  { question:"Which word means 'ສີເຫຼືອງ'?", choices:["yellow","purple","orange","black"], answer:"yellow" },
+  { question:"Which word means 'ສີດໍາ'?", choices:["white","black","blue","brown"], answer:"black" },
+  { question:"Which word means 'ສີຂາວ'?", choices:["white","black","gray","green"], answer:"white" },
+  { question:"Which word means 'ສີບົວ'?", choices:["pink","purple","red","orange"], answer:"pink" },
+  { question:"Which word means 'ສີມ່ວງ'?", choices:["purple","pink","blue","brown"], answer:"purple" },
+  { question:"Which word means 'ສີນໍ້າຕານ'?", choices:["brown","black","orange","gray"], answer:"brown" },
+  { question:"Which word means 'ສີສົ້ມ'?", choices:["orange","yellow","red","pink"], answer:"orange" },
+
+  { question:"Which sentence is a question?", choices:["What is your name?","I am a student.","She is happy.","They play football."], answer:"What is your name?" },
+  { question:"Which sentence is a greeting?", choices:["Good morning!","I like rice.","Open the door.","This is my pen."], answer:"Good morning!" },
+  { question:"What should you say when someone helps you?", choices:["Thank you.","Goodbye.","Sorry.","Good night."], answer:"Thank you." },
+  { question:"What should you say when you make a mistake?", choices:["Thank you.","Sorry.","Hello.","Good morning."], answer:"Sorry." },
+  { question:"What do you say when you meet someone for the first time?", choices:["Nice to meet you.","Good night.","See you yesterday.","Thank you."], answer:"Nice to meet you." },
+  { question:"What do you say before going to bed?", choices:["Good morning.","Good afternoon.","Good night.","Hello."], answer:"Good night." },
+  { question:"Which sentence asks for someone's name?", choices:["What is your name?","Where are you?","How old are you?","What color is it?"], answer:"What is your name?" },
+  { question:"Which sentence asks about age?", choices:["How old are you?","What is your name?","Where do you live?","What is this?"], answer:"How old are you?" },
+  { question:"Which sentence asks about a place?", choices:["Where do you live?","What is your name?","How old are you?","Are you happy?"], answer:"Where do you live?" },
+  { question:"Which sentence asks about a thing?", choices:["What is this?","Who are you?","Where are you?","How old are you?"], answer:"What is this?" },
+
+  { question:"Choose the correct word: I ___ a student.", choices:["am","is","are","be"], answer:"am" },
+  { question:"Choose the correct word: She ___ my sister.", choices:["am","is","are","be"], answer:"is" },
+  { question:"Choose the correct word: They ___ my friends.", choices:["am","is","are","be"], answer:"are" },
+  { question:"Choose the correct word: He ___ a teacher.", choices:["am","is","are","be"], answer:"is" },
+  { question:"Choose the correct word: We ___ at school.", choices:["am","is","are","be"], answer:"are" },
+  { question:"Choose the correct word: You ___ very kind.", choices:["am","is","are","be"], answer:"are" },
+  { question:"Choose the correct word: It ___ a beautiful flower.", choices:["am","is","are","be"], answer:"is" },
+  { question:"Choose the correct word: I ___ two brothers.", choices:["have","has","having","had"], answer:"have" },
+  { question:"Choose the correct word: She ___ a new bag.", choices:["have","has","having","had"], answer:"has" },
+  { question:"Choose the correct word: They ___ many books.", choices:["have","has","having","had"], answer:"have" },
+];
+function shuffleArray(arr){
+ const a=[...arr];
+ for(let i=a.length-1;i>0;i--){
+  const j=Math.floor(Math.random()*(i+1));
+  [a[i],a[j]]=[a[j],a[i]];
+ }
+ return a;
+}
+function createQuestionRandomizer(){
+ const questionOrder=shuffleArray(QUESTIONS.map((_,i)=>i));
+ const choiceOrder={};
+ questionOrder.forEach(qi=>{
+  choiceOrder[qi]=shuffleArray(QUESTIONS[qi].choices.map((_,i)=>i));
+ });
+ return {questionOrder,choiceOrder};
+}
+function getQuestionData(r){
+ const order=Array.isArray(r?.questionOrder)&&r.questionOrder.length
+  ? r.questionOrder : QUESTIONS.map((_,i)=>i);
+ const current=Number(r?.currentQuestion||0);
+ const questionIndex=Number(order[current%order.length]);
+ const q=QUESTIONS[questionIndex]||QUESTIONS[0];
+ const saved=r?.choiceOrder?.[questionIndex];
+ const choiceOrder=Array.isArray(saved)&&saved.length===q.choices.length
+  ? saved : q.choices.map((_,i)=>i);
+ return {q,choices:choiceOrder.map(i=>q.choices[i]),questionIndex,choiceOrder};
+}
+
+let me=null,room=null,listenRef=null,timerHandle=null;
+
+function dbReady(){
+  if(!firebaseReady||!db){
+    setConnection("ບໍ່ສາມາດເຊື່ອມຕໍ່","offline");
+    return false;
+  }
+  return true;
+}
+function id(){return String(Math.floor(100000+Math.random()*900000))}
+function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
+function mathText(s){
+  return String(s ?? "")
+    .replace(/\\\\/g, "\\");
+}
+function renderMath(el=view){
+  if(window.MathJax && el){
+    MathJax.typesetClear?.([el]);
+    MathJax.typesetPromise([el]).catch(console.error);
+  }
+}
+function math(){renderMath(view)}
+function timerHTML(sec,label="วินาที"){
+  return `<div class="timer-wrap"><div class="timer" data-timer-ring data-duration="${sec}" style="--progress:100%"><b data-timer>${sec}</b><small>${label}</small></div></div>`;
+}
+function setTimer(sec,done){
+  clearInterval(timerHandle);
+  const started=Date.now(), end=started+sec*1000;
+  const tick=()=>{
+    const left=Math.max(0,Math.ceil((end-Date.now())/1000));
+    const elapsed=Math.min(sec*1000,Math.max(0,Date.now()-started));
+    const progress=Math.max(0,100-(elapsed/(sec*1000))*100);
+    document.querySelectorAll("[data-timer]").forEach(x=>x.textContent=left);
+    document.querySelectorAll("[data-timer-ring]").forEach(x=>x.style.setProperty("--progress",progress+"%"));
+    if(!left){clearInterval(timerHandle);if(done)done();}
+  };
+  tick();timerHandle=setInterval(tick,100);
+}
+function setPhaseTimer(sec,phaseStartedAt,done){
+  clearInterval(timerHandle);
+  const start=Number(phaseStartedAt)||Date.now(), end=start+sec*1000;
+  let finished=false;
+  const tick=()=>{
+    const left=Math.max(0,Math.ceil((end-Date.now())/1000));
+    const elapsed=Math.min(sec*1000,Math.max(0,Date.now()-start));
+    const progress=Math.max(0,100-(elapsed/(sec*1000))*100);
+    document.querySelectorAll("[data-timer]").forEach(x=>x.textContent=left);
+    document.querySelectorAll("[data-timer-ring]").forEach(x=>x.style.setProperty("--progress",progress+"%"));
+    if(!left&&!finished){finished=true;clearInterval(timerHandle);if(done)done();}
+  };
+  tick();timerHandle=setInterval(tick,100);
+}
+function home(){clearInterval(timerHandle);view.innerHTML=`<div class="center"><h1>ເກມກຳຈັດຈຸດອ່ອນ</h1><p></p><div class="grid">
+<button class="role" onclick="hostPage()"><div class="ico">👑</div><strong>ຜູ້ຄຸມລະບົບ</strong><span>ສ້າງຫ້ອງ ແລະ ເລີ່ມເກມ</span></button>
+<button class="role" onclick="playerPage()"><div class="ico">🎮</div><strong>ຜູ້ຫຼິ້ນ</strong><span>ໃສ່ຊື່ ແລະ ເຂົ້າຫ້ອງ</span></button>
+</div></div>`}
+function hostPage(){view.innerHTML=`<div class="center"><h2>ສ້າງຫ້ອງເກມ</h2><p>ສົ່ງລະຫັດນີ້ໃຫ້ຜູ້ຫຼິ້ນ</p><div class="form"><button class="btn primary" onclick="createRoom()">ສ້າງຫ້ອງ</button><button class="btn" onclick="home()">ກັບໜ້າຫຼັກ</button></div></div>`}
+async function createRoom(){
+ if(!dbReady()) return;
+ const code=id();me={id:id(),name:"ຜູ້ຄຸ້ມລະບົບ",host:true};room=code;
+ await db.ref("rooms/"+code).set({hostId:me.id,gameStarted:false,phase:"lobby",round:0,currentQuestion:0,createdAt:firebase.database.ServerValue.TIMESTAMP});
+ listenRoom();hostLobby();
+}
+function hostLobby(){view.innerHTML=`<div class="center"><p>ລະຫັດຫ້ອງ</p><div class="roomcode">${room}</div><div class="status">ລໍຖ້າຜູ້ຫຼິ້ນເຂົ້າຫ້ອງ</div><div id="hostPlayers" class="players"></div><div class="actions"><button id="startBtn" class="btn primary" onclick="startGame()">ເລີ່ມເກມ</button><button class="btn" onclick="home()">ອອກ</button></div></div>`}
+function playerPage(){view.innerHTML=`<div class="center"><h2>ເຂົ້າຮ່ວມເກມ</h2><div class="form"><input id="pname" class="input" placeholder="ຊື່ຂອງທ່ານ" maxlength="30"><input id="rcode" class="input" placeholder="ລະຫັດຫ້ອງ" maxlength="8" style="text-transform:uppercase"><button class="btn primary" onclick="joinRoom()">ຕົກລົງ</button><button class="btn" onclick="home()">ກັບໜ້າຫຼັກ</button></div><div id="joinError" class="note"></div></div>`}
+async function joinRoom(){
+ if(!dbReady()) return;
+ const name=document.getElementById("pname").value.trim(),code=document.getElementById("rcode").value.trim().toUpperCase(),err=document.getElementById("joinError");
+ if(!name||!code){err.textContent="ກະລຸນາໃສ່ຊື່ ແລະ ລະຫັດຫ້ອງ";return}
+ const snap=await db.ref("rooms/"+code).get();if(!snap.exists()){err.textContent="ບໍ່ພົບຫ້ອງ";return}
+ if(snap.val().gameStarted){err.textContent="ເກມເລີ່ມແລ້ວ";return}
+ me={id:id(),name,host:false};room=code;
+ await db.ref(`rooms/${room}/players/${me.id}`).set({name,alive:true,online:true,score:0,joinedAt:firebase.database.ServerValue.TIMESTAMP});
+ db.ref(`rooms/${room}/players/${me.id}/online`).onDisconnect().set(false);
+ listenRoom();playerLobby();
+}
+function listenRoom(){
+ if(listenRef)listenRef.off();listenRef=db.ref("rooms/"+room);listenRef.on("value",s=>{if(!s.exists())return;const r=s.val();if(me?.host)renderHost(r);else renderPlayer(r)})
+}
+function playerLobby(){view.innerHTML=`<div class="center"><h2>ລໍຖ້າເລີ່ມເກມ</h2><p>ຫ້ອງ: <b>${room}</b></p><div id="lobbyPlayers" class="players"></div><div class="note">ລໍຖ້າຜູ້ຄຸ້ມລະບົບເລີ່ມເກມ...</div></div>`}
+function playersHTML(ps,clickable=false,r=null){
+ return Object.entries(ps||{}).filter(([,p])=>p).map(([pid,p])=>{
+   if(!clickable || p.alive===false)return `<div class="player ${p.alive===false?"dead":""}">${esc(p.name)}</div>`;
+   const chosen=r?.votes?.[me?.id]===pid;
+   return `<button class="vote ${chosen?"selected":""}" ${chosen?"disabled":""} onclick="vote('${pid}')">${esc(p.name)}${chosen?" ✓ ເລືອກຄົນນີ້":""}</button>`;
+ }).join("")
+}
+function renderHost(r){
+ if(r.phase==="lobby"){const el=document.getElementById("hostPlayers");if(el)el.innerHTML=playersHTML(r.players);return}
+ hostGame(r)
+}
+function renderPlayer(r){
+ if(r.phase==="lobby"){const el=document.getElementById("lobbyPlayers");if(el)el.innerHTML=playersHTML(r.players);return}
+ playerGame(r)
+}
+function startGame(){
+ if(!dbReady())return;
+ const randomizer=createQuestionRandomizer();
+ db.ref("rooms/"+room).update({
+   gameStarted:true,phase:"questionPreview",round:1,currentQuestion:0,
+   questionOrder:randomizer.questionOrder,
+   choiceOrder:randomizer.choiceOrder,
+   phaseStartedAt:firebase.database.ServerValue.TIMESTAMP
+ });
+}
+function hostGame(r){
+ const ps=r.players||{}, alive=Object.entries(ps).filter(([,p])=>p.alive!==false);
+ clearInterval(timerHandle);
+ if(r.phase==="winner"){winnerScreen(r);return}
+ if(r.phase==="duelReady" || r.phase==="duelAnswerReveal" || r.phase==="duelAnswer" || r.phase==="duelReview" || r.phase==="duelResult"){duelHost(r,alive);return}
+
+ if(r.phase==="questionPreview"){
+   const {q,choices}=getQuestionData(r);
+   view.innerHTML=`<div class="game">
+     <div class="phase">📖 ຮອບ ${Number(r.round||1)} • ກຽມຄຳຖາມ</div>
+     ${timerHTML(5)}
+     <div class="question">${mathText(esc(q.question))}</div>
+     <div class="note">ກຽມຕົວ… ຈະເລີ່ມຕອບໃນ 5 ວິນາທີ</div>
+   </div>`;
+   renderMath();setTimer(5,async()=>{
+     const snap=await db.ref("rooms/"+room).get(),now=snap.val();
+     if(now?.phase==="questionPreview") await db.ref("rooms/"+room).update({phase:"vote",phaseStartedAt:firebase.database.ServerValue.TIMESTAMP,votes:{}});
+   });return;
+ }
+ if(r.phase==="vote"){
+   view.innerHTML=`<div class="game"><div class="phase">🎯 ກຳຈັດຈຸດອ່ອນ • 10 ວິນາທີ</div>
+   ${timerHTML(10)}<div class="votegrid">${playersHTML(ps)}</div><div class="note"></div></div>`;
+   setPhaseTimer(10,r.phaseStartedAt,resolveVote);return;
+ }
+ if(r.phase==="answerReveal"){
+   const p=ps[r.selectedPlayer];
+   view.innerHTML=`<div class="center"><h1>🎯</h1><h2>${esc(p?.name||"")}</h2><p>ຖືກເລືອກໃຫ້ຕອບຄຳຖາມ</p>${timerHTML(3)}</div>`;
+   setTimer(3,async()=>{const snap=await db.ref("rooms/"+room).get();if(snap.val()?.phase==="answer")return;await db.ref("rooms/"+room).update({phase:"answer",phaseStartedAt:firebase.database.ServerValue.TIMESTAMP})});return;
+ }
+ if(r.phase==="answer"){answerHost(r);return}
+ if(r.phase==="result"){resultHost(r);return}
+}
+async function resolveVote(){
+ const s=await db.ref(`rooms/${room}`).get(),r=s.val();
+ if(!r||r.phase!=="vote")return;
+ const ps=r.players||{},votes=r.votes||{},counts={};
+ Object.entries(votes).forEach(([voter,target])=>{if(ps[voter]?.alive!==false && ps[target]?.alive!==false)counts[target]=(counts[target]||0)+1;});
+ const alive=Object.entries(ps).filter(([,p])=>p.alive!==false).map(([id])=>id);
+ if(!alive.length)return;
+ const max=Math.max(...alive.map(pid=>counts[pid]||0));
+ const top=alive.filter(pid=>(counts[pid]||0)===max);
+ const selected=top[Math.floor(Math.random()*top.length)];
+ await db.ref(`rooms/${room}`).update({selectedPlayer:selected,phase:"answerReveal",phaseStartedAt:firebase.database.ServerValue.TIMESTAMP,voteClosed:true});
+}
+function answerHost(r){
+ const {q,choices}=getQuestionData(r),p=r.players?.[r.selectedPlayer];
+ view.innerHTML=`<div class="game"><div class="phase">🧠 ຜູ້ຕອບ: ${esc(p?.name)}</div>${timerHTML(15)}
+ <div class="question">${mathText(esc(q.question))}</div>
+ <div class="choices">${choices.map(c=>`<div class="choice">${mathText(esc(c))}</div>`).join("")}</div>
+ <div class="note">ຜູ້ຫຼິ້ນກຳລັງເລືອກຄຳຕອບ…</div></div>`;
+ renderMath();setTimer(15,()=>finishAnswer(false));
+}
+
+async function leaveGameAfterLoss(){
+  clearInterval(timerHandle);
+  if(listenRef){listenRef.off();listenRef=null;}
+  const oldRoom=room;
+  const oldId=me?.id;
+  // Remove ONLY this player from the shared game. Never delete the room,
+  // because the remaining players must continue and reach the final duel.
+  me=null;
+  room=null;
+  home();
+  try{
+    if(dbReady() && oldRoom && oldId){
+      await db.ref(`rooms/${oldRoom}/players/${oldId}`).remove();
+    }
+  }catch(error){
+    console.error("Remove eliminated player error:",error);
+  }
+}
+
+async function newGame(){
+  clearInterval(timerHandle);
+  if(listenRef){listenRef.off();listenRef=null;}
+  const oldRoom=room;
+  const oldId=me?.id;
+  me=null;
+  room=null;
+  home();
+  try{
+    if(dbReady() && oldRoom && oldId){
+      await db.ref(`rooms/${oldRoom}/players/${oldId}`).remove();
+    }
+  }catch(error){
+    console.error("Clear player data error:",error);
+  }
+}
+
+function duelScoreHTML(r){
+ const ids=Object.keys(r.duelScores||{});
+ const a=ids[0],b=ids[1];
+ return `<div class="duel-board">
+   <div class="duel-card ${a===me?.id?"me":""}"><strong>${esc(r.players?.[a]?.name||"ผู้เล่น 1")}</strong><div class="duel-score">${Number(r.duelScores?.[a]||0)}</div></div>
+   <div class="duel-vs">VS</div>
+   <div class="duel-card ${b===me?.id?"me":""}"><strong>${esc(r.players?.[b]?.name||"ผู้เล่น 2")}</strong><div class="duel-score">${Number(r.duelScores?.[b]||0)}</div></div>
+ </div>`;
+}
+function playerGame(r){
+  clearInterval(timerHandle);
+
+  /* =========================
+     GAME WINNER
+     ========================= */
+  if(r.phase==="winner"){
+    if(me?.id===r.winnerId){
+      const winnerName=
+        r.winnerName ||
+        r.players?.[r.winnerId]?.name ||
+        "";
+
+      view.innerHTML=`
+        <div class="center">
+          <div class="result good">
+            <h1>🏆</h1>
+            <h2>ຜູ້ຊະນະ</h2>
+            <p style="font-size:clamp(28px,5vw,48px);font-weight:900;color:var(--text)">
+              ${esc(winnerName)}
+            </p>
+            <p>🎉 ຂໍຊົມເຊີຍ!</p>
+          </div>
+        </div>
+      `;
+    }else if(me?.id===r.eliminatedPlayer){
+      view.innerHTML=`
+        <div class="center">
+          <div class="result bad">
+            <h1>💥</h1>
+            <h2>ທ່ານແພ້ແລ້ວ</h2>
+            <p>ທ່ານຖືກລົບອອກຈາກເກມ</p>
+            <div class="actions">
+              <button class="btn primary" onclick="leaveGameAfterLoss()">
+                ອອກຈາກເກມ
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+    }else{
+      const winnerName=
+        r.winnerName ||
+        r.players?.[r.winnerId]?.name ||
+        "";
+
+      view.innerHTML=`
+        <div class="center">
+          <div class="result neutral">
+            <h2>🏆 ເກມຈົບແລ້ວ</h2>
+            <p>ຜູ້ຊະນະ</p>
+            <p style="font-size:clamp(28px,5vw,48px);font-weight:900;color:var(--text)">
+              ${esc(winnerName)}
+            </p>
+          </div>
+        </div>
+      `;
+    }
+
+    return;
+  }
+
+
+  /* =========================
+     DUEL READY
+     ========================= */
+  if(r.phase==="duelReady"){
+    view.innerHTML=`
+      <div class="center">
+        <span class="duel-round">⚔️ ຮອບຕັດສິນ</span>
+        <h1>👑</h1>
+        <h2>2 ຄົນສຸດທ້າຍ</h2>
+        <p>ຜັດກັນຕອບຄົນລະຂໍ້</p>
+        ${timerHTML(2)}
+      </div>
+    `;
+
+    setPhaseTimer(2,r.phaseStartedAt,null);
+    return;
+  }
+
+
+  /* =========================
+     DUEL ANSWER REVEAL
+     ========================= */
+  if(r.phase==="duelAnswerReveal"){
+    const selected=r.selectedPlayer===me?.id;
+
+    view.innerHTML=`
+      <div class="center">
+        <h1>${selected?"🎯":"⏳"}</h1>
+        <h2>${selected?"ຮອດຄິວຂອງທ່ານ":"ລໍຖ້າຄູ່ແຂ່ງ"}</h2>
+        <p>
+          ${selected
+            ?"ກຽມຕົວຕອບຄຳຖາມ"
+            :"ຄູ່ແຂ່ງກຳລັງກຽມຕົວ"}
+        </p>
+        ${timerHTML(3)}
+      </div>
+    `;
+
+    setPhaseTimer(3,r.phaseStartedAt,null);
+    return;
+  }
+
+
+  /* =========================
+     DUEL ANSWER
+     ========================= */
+  if(r.phase==="duelAnswer"){
+    if(r.selectedPlayer===me?.id){
+      duelAnswerPlayer(r);
+      return;
+    }
+
+    view.innerHTML=`
+      <div class="center">
+        <h2>
+          ⏳ ກຳລັງໃຫ້
+          ${esc(r.players?.[r.selectedPlayer]?.name||"")}
+          ຕອບ
+        </h2>
+        ${timerHTML(15)}
+        <p>ລໍຖ້າຄູ່ແຂ່ງຕອບ…</p>
+      </div>
+    `;
+
+    setPhaseTimer(15,r.phaseStartedAt,null);
+    return;
+  }
+
+
+  /* =========================
+     DUEL REVIEW
+     ========================= */
+  if(r.phase==="duelReview"){
+    const ids=Object.keys(r.duelScores||{});
+
+    if(ids.length<2){
+      view.innerHTML=`
+        <div class="center">
+          <div class="result neutral">
+            <h2>⏳ ລໍຖ້າຜົນ...</h2>
+          </div>
+        </div>
+      `;
+      return;
+    }
+
+    const a=ids[0];
+    const b=ids[1];
+
+    const sa=Number(r.duelScores?.[a]||0);
+    const sb=Number(r.duelScores?.[b]||0);
+
+    const tie=sa===sb;
+
+    if(tie){
+      view.innerHTML=`
+        <div class="center">
+          ${duelScoreHTML(r)}
+
+          <div class="result neutral">
+            <h2>🤝 ສະເໝີ</h2>
+            <p>ຄະແນນ ${sa} - ${sb}</p>
+            <p>⏳ ລໍຖ້າເກມຖັດໄປ...</p>
+          </div>
+        </div>
+      `;
+    }else{
+      const winnerId=sa>sb?a:b;
+      const loserId=winnerId===a?b:a;
+
+      const winnerName=
+        r.players?.[winnerId]?.name ||
+        "";
+
+      const loserName=
+        r.players?.[loserId]?.name ||
+        "";
+
+      if(me?.id===winnerId){
+        view.innerHTML=`
+          <div class="center">
+            ${duelScoreHTML(r)}
+
+            <div class="result good">
+              <h2>🏆 ທ່ານຊະນະ!</h2>
+              <p>ຜູ້ແພ້: ${esc(loserName)}</p>
+              <p>ຄະແນນ ${sa} - ${sb}</p>
+              <p>⏳ ກຳລັງປະກາດຜູ້ຊະນະ...</p>
+            </div>
+          </div>
+        `;
+      }else{
+        view.innerHTML=`
+          <div class="center">
+            ${duelScoreHTML(r)}
+
+            <div class="result bad">
+              <h2>💥 ທ່ານແພ້ແລ້ວ</h2>
+              <p>ຜູ້ຊະນະ: ${esc(winnerName)}</p>
+              <p>ຄະແນນ ${sa} - ${sb}</p>
+              <p>⏳ ກຳລັງປະກາດຜູ້ຊະນະ...</p>
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    return;
+  }
+
+
+  /* =========================
+     DUEL RESULT
+     ========================= */
+  if(r.phase==="duelResult"){
+    const ids=Object.keys(r.duelScores||{});
+
+    if(ids.length<2){
+      view.innerHTML=`
+        <div class="center">
+          <div class="result neutral">
+            <h2>⏳ ລໍຖ້າຜົນ...</h2>
+          </div>
+        </div>
+      `;
+      return;
+    }
+
+    const a=ids[0];
+    const b=ids[1];
+
+    const sa=Number(r.duelScores?.[a]||0);
+    const sb=Number(r.duelScores?.[b]||0);
+
+    const tie=sa===sb;
+    const winnerId=tie?null:(sa>sb?a:b);
+
+    if(tie){
+      view.innerHTML=`
+        <div class="center">
+          ${duelScoreHTML(r)}
+
+          <div class="result neutral">
+            <h2>🤝 ສະເໝີ</h2>
+            <p>ຄະແນນ ${sa} - ${sb}</p>
+            <p>⏳ ລໍຖ້າເກມຖັດໄປ...</p>
+          </div>
+        </div>
+      `;
+    }else{
+      const loserId=winnerId===a?b:a;
+
+      const winnerName=
+        r.players?.[winnerId]?.name ||
+        r.winnerName ||
+        "";
+
+      const loserName=
+        r.players?.[loserId]?.name ||
+        "";
+
+      if(me?.id===winnerId){
+        view.innerHTML=`
+          <div class="center">
+            ${duelScoreHTML(r)}
+
+            <div class="result good">
+              <h2>🏆 ທ່ານຊະນະ!</h2>
+              <p>ຜູ້ແພ້: ${esc(loserName)}</p>
+              <p>ຄະແນນ ${sa} - ${sb}</p>
+            </div>
+          </div>
+        `;
+      }else{
+        view.innerHTML=`
+          <div class="center">
+            ${duelScoreHTML(r)}
+
+            <div class="result bad">
+              <h2>💥 ທ່ານແພ້ແລ້ວ</h2>
+              <p>ຜູ້ຊະນະ: ${esc(winnerName)}</p>
+              <p>ຄະແນນ ${sa} - ${sb}</p>
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    return;
+  }
+
+
+  /* =========================
+     NORMAL VOTE
+     ========================= */
+  if(r.phase==="vote"){
+    const myPlayer=r.players?.[me?.id];
+
+    if(!myPlayer || myPlayer.alive===false){
+      clearInterval(timerHandle);
+
+      view.innerHTML=`
+        <div class="center">
+          <div class="result bad">
+            <h2>ທ່ານບໍ່ຢູ່ໃນເກມນີ້ແລ້ວ</h2>
+            <p>ກຳລັງອອກຈາກເກມ...</p>
+          </div>
+        </div>
+      `;
+
+      setTimeout(()=>leaveGameAfterLoss(),1000);
+      return;
+    }
+
+    const can=true;
+
+    const chosen=r.votes?.[me.id];
+
+    const chosenName=
+      chosen
+        ? r.players?.[chosen]?.name
+        : "";
+
+    view.innerHTML=`
+      <div class="game">
+
+        <div class="phase">
+          🎯 ກຳຈັດຈຸດອ່ອນ • 10 ວິນາທີ
+        </div>
+
+        ${timerHTML(10)}
+
+        ${
+          chosen
+            ? `
+              <div class="vote-picked">
+                <div class="vote-picked-icon">✓</div>
+                <h2>ເລືອກຄົນນີ້ແລ້ວ</h2>
+                <p><b>${esc(chosenName||"")}</b></p>
+                <span>ລໍຖ້າຜູ້ຫຼິ້ນຄົນອື່ນ…</span>
+              </div>
+            `
+            : `
+              <p style="text-align:center">
+                ເລືອກຄົນທີ່ທ່ານຕ້ອງການໃຫ້ຕອບ
+              </p>
+
+              <div class="votegrid">
+                ${can?playersHTML(r.players,true,r):""}
+              </div>
+            `
+        }
+
+        <div class="note">
+          ກົດເລືອກໄດ້ພຽງ 1 ຄັ້ງ •
+          ບໍ່ກົດເລືອກ = ສະລະສິດ
+          ແລະບໍ່ຖືກນັບເປັນຄະແນນໂຫວດ
+        </div>
+
+      </div>
+    `;
+
+    setPhaseTimer(10,r.phaseStartedAt,null);
+    return;
+  }
+
+
+  /* =========================
+     NORMAL ANSWER REVEAL
+     ========================= */
+  if(r.phase==="answerReveal"){
+    const selected=r.selectedPlayer===me?.id;
+
+    view.innerHTML=`
+      <div class="center">
+        <h1>${selected?"🎯":"⏳"}</h1>
+
+        <h2>
+          ${selected
+            ?"ທ່ານຖືກເລືອກ"
+            :"ກຳລັງລໍຖ້າ"}
+        </h2>
+
+        <p>
+          ${selected
+            ?"ກຽມຕົວຕອບຄຳຖາມ"
+            :"ຜູ້ຕອບກຳລັງກຽມຕົວ"}
+        </p>
+
+        ${timerHTML(3)}
+      </div>
+    `;
+
+    setPhaseTimer(3,r.phaseStartedAt,null);
+    return;
+  }
+
+
+  /* =========================
+     NORMAL ANSWER
+     ========================= */
+  if(r.phase==="answer" && r.selectedPlayer===me?.id){
+    answerPlayer(r);
+    return;
+  }
+
+  if(r.phase==="answer"){
+    view.innerHTML=`
+      <div class="center">
+        <h2>
+          ⏳ ກຳລັງໃຫ້
+          ${esc(r.players?.[r.selectedPlayer]?.name||"")}
+          ຕອບ
+        </h2>
+
+        ${timerHTML(15)}
+      </div>
+    `;
+
+    setPhaseTimer(15,r.phaseStartedAt,null);
+    return;
+  }
+
+
+  /* =========================
+     NORMAL RESULT
+     ========================= */
+  if(r.phase==="result"){
+    resultPlayer(r);
+    return;
+  }
+
+
+  /* =========================
+     DEFAULT
+     ========================= */
+  view.innerHTML=`
+    <div class="center">
+      <h2>✨ ກຳລັງກຽມຮອບຕໍ່ໄປ...</h2>
+    </div>
+  `;
+}
+
+/* เพิ่มตรงนี้ */
+function winnerScreen(r){
+  const winnerName=
+    r.winnerName ||
+    r.players?.[r.winnerId]?.name ||
+    "";
+
+  view.innerHTML=`
+    <div class="center">
+      <div class="result good">
+        <h1>🏆</h1>
+        <h2>ຜູ້ຊະນະ</h2>
+        <p style="font-size:clamp(28px,5vw,48px);font-weight:900;color:var(--text)">
+          ${esc(winnerName)}
+        </p>
+        <p>🎉 ຂໍສະແດງຄວາມຍິນດີ!</p>
+      </div>
+    </div>
+  `;
+}
+async function vote(target){
+  if(!me||!room)return;
+
+  const snap=await db.ref(`rooms/${room}`).get();
+  const r=snap.val();
+
+  if(!r || r.phase!=="vote" || r.votes?.[me.id])return;
+
+  if(!r.players?.[me.id] || r.players[me.id].alive===false)return;
+
+  if(!r.players?.[target] || r.players[target].alive===false)return;
+
+  await db.ref(`rooms/${room}/votes/${me.id}`).set(target);
+}
+function answerPlayer(r){
+ const {q,choices}=getQuestionData(r);
+ view.innerHTML=`<div class="game"><div class="phase">🧠 ຕອບຄຳຖາມ • 15 ວິນາທີ</div>${timerHTML(15)}
+ <div class="question">${mathText(esc(q.question))}</div>
+ <div class="choices">${choices.map((c,i)=>`<button class="choice" onclick="submitAnswer(${i})">${mathText(esc(c))}</button>`).join("")}</div></div>`;
+ renderMath();setTimer(15,()=>submitAnswer(-1));
+}
+async function submitAnswer(i){clearInterval(timerHandle);const r=(await db.ref("rooms/"+room).get()).val();if(r.phase!=="answer"||r.selectedPlayer!==me.id)return;const {q,choices}=getQuestionData(r),correct=i>=0&&choices[i]===q.answer;await finishAnswer(correct)}
+async function finishAnswer(correct){
+  const s=await db.ref("rooms/"+room).get(),r=s.val();
+  if(!r||r.phase!=="answer")return;
+  const pid=r.selectedPlayer, name=r.players?.[pid]?.name||"";
+  if(correct){
+    await db.ref(`rooms/${room}/players/${pid}/score`).transaction(x=>(Number(x)||0)+1);
+    await db.ref(`rooms/${room}`).update({phase:"result",lastResult:"correct",lastResultName:name,eliminatedPlayer:null});
+  }else{
+    await db.ref(`rooms/${room}`).update({
+      phase:"result",
+      lastResult:"wrong",
+      lastResultName:name,
+      eliminatedPlayer:pid
+    });
+    // Mark eliminated immediately so the player can never be selected again.
+    await db.ref(`rooms/${room}/players/${pid}/alive`).set(false);
+    // Remove the eliminated player record after the result screen has had time
+    // to display. Other players remain in the shared room.
+    setTimeout(async()=>{
+      try{
+        const s=await db.ref(`rooms/${room}/phase`).get();
+        if(s.val()==="result") await db.ref(`rooms/${room}/players/${pid}`).remove();
+      }catch(e){ console.error("Remove wrong-answer player error:",e); }
+    },3000);
+  }
+}
+function resultHost(r){
+  const good=r.lastResult==="correct",ps=r.players||{};
+  const name=r.lastResultName||ps[r.selectedPlayer]?.name||"";
+  const alive=Object.entries(ps).filter(([,p])=>p.alive!==false);
+  view.innerHTML=`<div class="center"><div class="result ${good?"good":"bad"}">
+    <h1>${good?"✓":"✕"}</h1><h2>${good?"ຕອບຖືກ!":"ຕອບຜິດ!"}</h2>
+    <p>${good?`🎉 ${esc(name)} ຕອບຖືກ ແລະ ໄດ້ໄປຕໍ່`:`💥 ${esc(name)} ແພ້ ແລະ ຖືກລົບອອກຈາກລະບົບ`}</p>
+  </div><div class="actions">${alive.length>1?`<button class="btn primary" onclick="nextRound()">ຮອບຖັດໄປ</button>`:`<button class="btn primary" onclick="nextRound()">ສະແດງຜູ້ຊະນະ</button>`}</div></div>`;
+}
+function resultPlayer(r){
+  const ps=r.players||{},pid=r.selectedPlayer,name=r.lastResultName||ps[pid]?.name||"";
+  if(r.lastResult==="wrong" && r.eliminatedPlayer===me?.id){
+    clearInterval(timerHandle);
+    view.innerHTML=`<div class="center"><div class="result bad"><h1>❌</h1>
+      <h2>ທ່ານຕອບຜິດ — ແພ້ແລ້ວ</h2>
+      <p>${esc(name)} ຖືກລົບອອກຈາກເກມ</p>
+      <p>ຈະອອກຈາກເກມໃນ 3 ວິນາທີ...</p>
+    </div></div>`;
+    setTimeout(()=>{ leaveGameAfterLoss(); },3000);
+    return;
+  }
+const alive = Object.entries(r.players || {})
+  .filter(([, p]) => p.alive !== false);
+
+if (alive.length <= 1) {
+  const winnerId = alive[0]?.[0] || null;
+  const winnerName = alive[0]?.[1]?.name || "";
+
+  view.innerHTML = `<div class="center">
+    <div class="result good">
+      <h1>🏆</h1>
+      <h2>ຜູ້ຊະນະ</h2>
+      <p style="font-size:clamp(28px,5vw,48px);font-weight:900;color:var(--text)">
+        ${esc(winnerName)}
+      </p>
+      <p>🎉 ຂໍສະແດງຄວາມຊົມເຊີຍ!</p>
+    </div>
+  </div>`;
+
+  return;
+}
+
+view.innerHTML=`<div class="center"><div class="result ${r.lastResult==="correct"?"good":"bad"}">
+  <h1>${r.lastResult==="correct"?"✓":"✕"}</h1>
+  <h2>${r.lastResult==="correct"?`🎉 ${esc(name)} ຕອບຖືກ`:`💥 ${esc(name)} ແພ້ແລ້ວ`}</h2>
+  <p>ກຽມພ້ອມສຳລັບຂໍ້ຖັດໄປ...</p>
+</div></div>`;
+}
+async function nextRound(){
+ const r=(await db.ref("rooms/"+room).get()).val();
+ const alive=Object.entries(r.players||{}).filter(([,p])=>p.alive!==false);
+ if(alive.length<=1){
+   await db.ref("rooms/"+room).update({phase:"winner",winnerId:alive[0]?.[0]||null});return;
+ }
+ if(alive.length===2){
+   const a=alive[0][0],b=alive[1][0];
+   await db.ref("rooms/"+room).update({
+     phase:"duelReady",round:(r.round||1)+1,duelRound:1,duelIndex:0,
+     duelScores:{[a]:0,[b]:0},duelAnswered:{},
+     currentQuestion:((r.currentQuestion||0)+1)%QUESTIONS.length
+   });return;
+ }
+ await db.ref("rooms/"+room).update({
+   phase:"questionPreview",round:(r.round||1)+1,
+   currentQuestion:((r.currentQuestion||0)+1)%QUESTIONS.length,votes:{}
+ });
+}
+async function revealDuelScore(){
+  if(!dbReady()||!room)return;
+  const r=(await db.ref("rooms/"+room).get()).val();
+  if(!r||r.phase!=="duelReview")return;
+  await db.ref("rooms/"+room).update({phase:"duelResult",phaseStartedAt:firebase.database.ServerValue.TIMESTAMP});
+}
+
+async function finishDuelWinner(winnerId, loserId){
+  if(!room || !winnerId || !loserId || winnerId===loserId)return;
+
+  const s=await db.ref("rooms/"+room).get();
+  const r=s.val();
+
+  if(!r || (r.phase!=="duelReview" && r.phase!=="duelResult"))return;
+
+  const winnerName=r.players?.[winnerId]?.name||"";
+  const loserName=r.players?.[loserId]?.name||"";
+
+  await db.ref("rooms/"+room).update({
+    phase:"winner",
+    winnerId,
+    winnerName,
+    eliminatedPlayer:loserId,
+    eliminatedName:loserName,
+    phaseStartedAt:firebase.database.ServerValue.TIMESTAMP
+  });
+
+  await db.ref(`rooms/${room}/players/${loserId}`).remove();
+}
+
+async function nextDuelGame(){
+  if(!dbReady()||!room)return;
+  const r=(await db.ref("rooms/"+room).get()).val();
+  if(!r||r.phase!=="duelReview")return;
+  const ids=Object.keys(r.duelScores||{}),a=ids[0],b=ids[1];
+  if(!a||!b||Number(r.duelScores?.[a]||0)!==Number(r.duelScores?.[b]||0))return;
+
+  const nextPid=r.selectedPlayer;
+
+  await db.ref("rooms/"+room).update({
+    duelRound:Number(r.duelRound||1)+1,
+    duelScores:{...(r.duelScores||{})},
+    duelAnswered:{},
+    duelIndex:nextPid===a?0:1,
+    currentQuestion:((r.currentQuestion||0)+1)%QUESTIONS.length,
+    phase:"duelAnswerReveal",
+    selectedPlayer:nextPid,
+    phaseStartedAt:firebase.database.ServerValue.TIMESTAMP
+  });
+}
+
+function leaveToHome(clean=true){
+ clearInterval(timerHandle);
+ if(listenRef){listenRef.off();listenRef=null;}
+ const oldRoom=room, oldMe=me;
+ if(clean && oldRoom && oldMe && !oldMe.host){
+   db.ref(`rooms/${oldRoom}/players/${oldMe.id}`).remove().catch(()=>{});
+ }
+ me=null;room=null;
+ home();
+}
+function duelScoreHTML(r){
+ const ids=Object.keys(r.duelScores||{}),a=ids[0],b=ids[1];
+ return `<div class="duel-board"><div class="duel-card"><strong>${esc(r.players?.[a]?.name||"ຜູ້ຫຼິ້ນ 1")}</strong><div class="duel-score">${Number(r.duelScores?.[a]||0)}</div></div><div class="duel-vs">VS</div><div class="duel-card"><strong>${esc(r.players?.[b]?.name||"ຜູ້ຫຼິ້ນ 2")}</strong><div class="duel-score">${Number(r.duelScores?.[b]||0)}</div></div></div>`;
+}
+function duelHost(r,alive){
+ if(alive.length!==2)return;
+ const idx=Number(r.duelIndex||0)%2,pid=alive[idx][0],p=alive[idx][1];
+ if(r.phase==="duelReady"){
+   view.innerHTML=`<div class="center"><span class="duel-round">⚔️ ຮອບຕັດສິນ</span><h1>👑</h1><h2>2 ຄົນສຸດທ້າຍ</h2><p>${esc(alive[0][1].name)} ພົບ ${esc(alive[1][1].name)}</p><p>ຜັດກັນຕອບຄົນລະຂໍ້</p>${timerHTML(2)}</div>`;
+   setPhaseTimer(2,r.phaseStartedAt,async()=>{const snap=await db.ref("rooms/"+room).get();if(snap.val()?.phase==="duelReady")await db.ref("rooms/"+room).update({phase:"duelAnswerReveal",selectedPlayer:pid,phaseStartedAt:firebase.database.ServerValue.TIMESTAMP})});return;
+ }
+ if(r.phase==="duelAnswerReveal"){
+   view.innerHTML=`<div class="center"><h1>🎯</h1><h2>${esc(p.name)}</h2><p>ກຽມຕົວຕອບຄຳຖາມ</p>${timerHTML(3)}</div>`;
+   setPhaseTimer(3,r.phaseStartedAt,async()=>{const snap=await db.ref("rooms/"+room).get();if(snap.val()?.phase==="duelAnswerReveal")await db.ref("rooms/"+room).update({phase:"duelAnswer",phaseStartedAt:firebase.database.ServerValue.TIMESTAMP})});return;
+ }
+ if(r.phase==="duelAnswer"){duelAnswerHost(r,pid);return}
+ if(r.phase==="duelReview"){
+    const ids=Object.keys(r.duelScores||{});
+    if(ids.length<2){
+      view.innerHTML=`<div class="center"><div class="result neutral"><h2>⏳ ລໍຖ້າ A ແລະ B ຕອບໃຫ້ຄົບ</h2></div></div>`;
+      return;
+    }
+    const a=ids[0],b=ids[1];
+    const sa=Number(r.duelScores?.[a]||0),sb=Number(r.duelScores?.[b]||0);
+    const tie=sa===sb;
+    const winnerId=tie?null:(sa>sb?a:b);
+    const winnerName=winnerId?(r.players?.[winnerId]?.name||""):"";
+    const nameA=r.players?.[a]?.name||"A";
+    const nameB=r.players?.[b]?.name||"B";
+
+    view.innerHTML=`<div class="center">
+      <span class="duel-round">📊 ຜົນການດວນຮອບນີ້</span>
+      <div class="duel-score" style="margin:18px auto;max-width:620px">
+        <div class="duel-player ${sa>sb?'winner':''}">
+          <strong>${esc(nameA)}</strong><span>${sa}</span>
+        </div>
+        <div class="duel-vs">VS</div>
+        <div class="duel-player ${sb>sa?'winner':''}">
+          <strong>${esc(nameB)}</strong><span>${sb}</span>
+        </div>
+      </div>
+      ${tie
+        ? `<div class="result neutral">
+             <h2>🤝 ສະເໝີ</h2>
+             <p>ຄະແນນ ${sa} - ${sb}</p>
+             <div class="actions">
+               <button class="btn primary" onclick="nextDuelGame()">ເກມຖັດໄປ</button>
+             </div>
+           </div>`
+        : `<div class="result good">
+             <h2>🏆 ຊະນະ: ${esc(winnerName)}</h2>
+             <p>ຄະແນນ ${sa} - ${sb}</p>
+             <p>ສະຖານະ: ${esc(winnerName)} ຊະນະ</p>
+           </div>`}
+    </div>`;
+
+    if(!tie){
+      setTimeout(async()=>{
+        try{
+          const s=await db.ref("rooms/"+room).get(),x=s.val();
+          if(x?.phase==="duelReview") await finishDuelWinner(winnerId, winnerId===a?b:a);
+        }catch(e){ console.error("Finish duel error:",e); }
+      },1500);
+    }
+    return;
+  }
+  if(r.phase==="duelResult"){
+    const ids=Object.keys(r.duelScores||{});
+    if(ids.length<2){
+      view.innerHTML=`<div class="center"><div class="result neutral"><h2>⏳ ກຳລັງສະຫຼຸບຄະແນນ...</h2></div></div>`;
+      return;
+    }
+    const a=ids[0],b=ids[1];
+    const sa=Number(r.duelScores?.[a]||0),sb=Number(r.duelScores?.[b]||0);
+    const tie=sa===sb,winnerId=tie?null:(sa>sb?a:b),loserId=tie?null:(sa>sb?b:a);
+    const winnerName=winnerId?r.players?.[winnerId]?.name||"":"";
+    view.innerHTML=`<div class="center"><span class="duel-round">📊 ຜົນການດວນ</span>${duelScoreHTML(r)}
+      ${tie
+        ? `<div class="result neutral"><h2>🤝 ສະເໝີ</h2><p>ຄະແນນ ${sa} - ${sb}</p><div class="actions"><button class="btn primary" onclick="nextDuelGame()">ເກມຖັດໄປ</button></div></div>`
+        : `<div class="result good"><h2>🏆 ຊະນະ: ${esc(winnerName)}</h2><p>ຄະແນນ ${sa} - ${sb}</p></div>`}
+    </div>`;
+    if(!tie){
+      setTimeout(async()=>{
+        try{
+          const snap=await db.ref("rooms/"+room).get(),x=snap.val();
+          if(x?.phase==="duelResult") await finishDuelWinner(winnerId,loserId);
+        }catch(e){console.error("Finish duel error:",e);}
+      },1200);
+    }
+    return;
+  }
+}
+function duelAnswerPlayer(r){
+  const {q,choices}=getQuestionData(r);
+  view.innerHTML=`<div class="game"><div class="phase">⚔️ ຮອບ ${Number(r.duelRound||1)} • ຄຳຖາມຂອງທ່ານ</div>${timerHTML(15)}<div class="question">${mathText(esc(q.question))}</div><div class="choices">${choices.map((c,i)=>`<button class="choice" onclick="duelAnswerSubmit(${i})">${mathText(esc(c))}</button>`).join("")}</div></div>`;
+  renderMath();
+  setPhaseTimer(15,r.phaseStartedAt,()=>duelAnswerSubmit(-1));
+}
+
+async function duelAnswerSubmit(i){
+  clearInterval(timerHandle);
+  const r=(await db.ref("rooms/"+room).get()).val();
+  if(!r||r.phase!=="duelAnswer"||r.selectedPlayer!==me?.id)return;
+  const {q,choices}=getQuestionData(r);
+  await finishDuelAnswer(i>=0&&choices[i]===q.answer);
+}
+
+async function finishDuelAnswer(correct){
+  const s=await db.ref("rooms/"+room).get(),r=s.val();
+  if(!r||r.phase!=="duelAnswer")return;
+
+  const pid=r.selectedPlayer,
+        scores={...(r.duelScores||{})},
+        answered={...(r.duelAnswered||{})};
+
+  if(answered[pid])return;
+
+  if(correct)scores[pid]=(Number(scores[pid])||0)+1;
+  answered[pid]=true;
+
+  const alive=Object.entries(r.players||{}).filter(([,p])=>p.alive!==false);
+  if(alive.length!==2)return;
+
+  const a=alive[0][0],b=alive[1][0];
+
+  if(!(answered[a]&&answered[b])){
+    const nextPid=pid===a?b:a;
+
+    await db.ref("rooms/"+room).update({
+      duelScores:scores,
+      duelAnswered:answered,
+      duelIndex:nextPid===a?0:1,
+      selectedPlayer:nextPid,
+      phase:"duelAnswerReveal",
+      phaseStartedAt:firebase.database.ServerValue.TIMESTAMP
+    });
+    return;
+  }
+
+  await db.ref("rooms/"+room).update({
+    duelScores:scores,
+    duelAnswered:answered,
+    phase:"duelReview",
+    phaseStartedAt:firebase.database.ServerValue.TIMESTAMP
+  });
+}
+
+home();
+</script>
+</body>
+</html>
