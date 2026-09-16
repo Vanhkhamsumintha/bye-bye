@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>ເກມກຳຈັດຈຸດອ່ອນ</title>
+<title>ເກມກຳຈັດຈຸດອ່ອນ • Multi Answer</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -85,6 +85,7 @@ h1{font-size:clamp(30px,5vw,54px);margin:0 0 10px;line-height:1.2}h2{font-size:c
 .note{font-size:14px;color:var(--muted);text-align:center;margin-top:4px}
 .hidden{display:none!important}
 .math-fix mjx-container{margin:.2em 0!important}
+.selected-players{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;width:min(1000px,100%);margin:18px auto}.selected-card{padding:18px;border:2px solid #eadcf3;border-radius:22px;background:#fff;box-shadow:0 8px 20px rgba(150,115,160,.07)}.selected-card.wait{background:#fffaf0}.selected-card.good{background:#edfff7;border-color:#bfead6}.selected-card.bad{background:#fff1f4;border-color:#ffd0d8}.selected-card strong{display:block;font-size:22px}.selected-card span{display:block;color:var(--muted);margin-top:5px}.spectator{padding:18px 20px;border:2px dashed #ddd5ff;border-radius:20px;background:#faf8ff;text-align:center}.controller-list{width:min(1000px,100%);margin:16px auto}.controller-row{display:grid;grid-template-columns:1.4fr .7fr .7fr;gap:10px;padding:12px 14px;border-bottom:1px solid var(--line);align-items:center}.controller-row:first-child{font-weight:900;background:#fff5fa;border-radius:12px}.pill{display:inline-flex;justify-content:center;align-items:center;padding:6px 12px;border-radius:999px;font-size:13px;font-weight:800}.pill.pick{background:#f0eaff;color:#725fc0}.pill.ok{background:#e9fff5;color:#368b6b}.pill.no{background:#fff0f3;color:#bd6373}.pill.wait{background:#f5eff8;color:#8b7f98}
 .vote-picked{margin:18px auto;padding:28px 22px;max-width:520px;text-align:center;border:2px solid #eadcf3;border-radius:28px;background:linear-gradient(145deg,#fff,#fff7fc);box-shadow:0 14px 32px rgba(165,125,180,.15);animation:popIn .35s ease}.vote-picked-icon{width:64px;height:64px;margin:0 auto 10px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(145deg,#c9f7e5,#d9f4ff);color:#557b72;font-size:34px;font-weight:900;box-shadow:0 8px 20px rgba(120,190,170,.18)}.vote-picked h2{margin:4px 0 8px;color:#735f82}.vote-picked p{margin:0 0 8px;font-size:25px;color:#5f6d7a}.vote-picked span{font-size:15px;color:#9a8ba2;font-weight:700}@keyframes popIn{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
 @media(max-width:700px){
  .app{padding:8px}.view{border-radius:22px;padding:20px;min-height:calc(100vh - 30px)}
@@ -413,58 +414,191 @@ function startGame(){
  });
 }
 function hostGame(r){
- const ps=r.players||{}, alive=Object.entries(ps).filter(([,p])=>p.alive!==false);
- clearInterval(timerHandle);
- if(r.phase==="winner"){winnerScreen(r);return}
- if(r.phase==="duelReady" || r.phase==="duelAnswerReveal" || r.phase==="duelAnswer" || r.phase==="duelReview" || r.phase==="duelResult"){duelHost(r,alive);return}
+  const ps=r.players||{};
+  const alive=Object.entries(ps).filter(([,p])=>p && p.alive!==false);
+  clearInterval(timerHandle);
+  if(r.phase==="winner"){winnerScreen(r);return}
+if(r.phase==="questionPreview"){
+  const {q}=getQuestionData(r);
 
- if(r.phase==="questionPreview"){
-   const {q,choices}=getQuestionData(r);
-   view.innerHTML=`<div class="game">
-     <div class="phase">📖 ຮອບ ${Number(r.round||1)} • ກຽມຄຳຖາມ</div>
-     ${timerHTML(5)}
-     <div class="question">${mathText(esc(q.question))}</div>
-     <div class="note">ກຽມຕົວ… ຈະເລີ່ມຕອບໃນ 5 ວິນາທີ</div>
-   </div>`;
-   renderMath();setTimer(5,async()=>{
-     const snap=await db.ref("rooms/"+room).get(),now=snap.val();
-     if(now?.phase==="questionPreview") await db.ref("rooms/"+room).update({phase:"vote",phaseStartedAt:firebase.database.ServerValue.TIMESTAMP,votes:{}});
-   });return;
- }
- if(r.phase==="vote"){
-   view.innerHTML=`<div class="game"><div class="phase">🎯 ກຳຈັດຈຸດອ່ອນ • 10 ວິນາທີ</div>
-   ${timerHTML(10)}<div class="votegrid">${playersHTML(ps)}</div><div class="note"></div></div>`;
-   setPhaseTimer(10,r.phaseStartedAt,resolveVote);return;
- }
- if(r.phase==="answerReveal"){
-   const p=ps[r.selectedPlayer];
-   view.innerHTML=`<div class="center"><h1>🎯</h1><h2>${esc(p?.name||"")}</h2><p>ຖືກເລືອກໃຫ້ຕອບຄຳຖາມ</p>${timerHTML(3)}</div>`;
-   setTimer(3,async()=>{const snap=await db.ref("rooms/"+room).get();if(snap.val()?.phase==="answer")return;await db.ref("rooms/"+room).update({phase:"answer",phaseStartedAt:firebase.database.ServerValue.TIMESTAMP})});return;
- }
- if(r.phase==="answer"){answerHost(r);return}
- if(r.phase==="result"){resultHost(r);return}
+  view.innerHTML=`
+    <div class="game">
+      <div class="phase">
+        📖 ຮອບ ${Number(r.round||1)} • ກຽມຄຳຖາມ
+      </div>
+
+      ${timerHTML(3)}
+
+      <div class="question">
+        ${mathText(esc(q.question))}
+      </div>
+
+      <div class="note">
+        ກຽມໂຫວດໃຫ້ເພື່ອນ…
+      </div>
+    </div>`;
+
+  renderMath();
+
+  setPhaseTimer(3,r.phaseStartedAt,async()=>{
+    try{
+      const ref=db.ref(`rooms/${room}`);
+      const snap=await ref.get();
+      const x=snap.val();
+
+      // ให้เฉพาะผู้คุมเป็นคนเปลี่ยน phase
+      if(x?.phase==="questionPreview" && me?.host){
+        await ref.update({
+          phase:"vote",
+          votes:{},
+          selectedPlayers:[],
+          answers:{},
+          results:null,
+          answerClosed:false,
+          phaseStartedAt:firebase.database.ServerValue.TIMESTAMP
+        });
+      }
+    }catch(e){
+      console.error("Start vote error:",e);
+    }
+  });
+
+  return;
 }
+
+  if(r.phase==="vote"){
+    // Blind vote on the controller: do not expose vote counts or selected status
+    // while voting is still in progress.
+    const voterIds=alive.map(([pid])=>pid);
+    const votedIds=Object.keys(r.votes||{}).filter(pid=>voterIds.includes(pid));
+    const allVoted=voterIds.length>0 && voterIds.every(pid=>r.votes?.[pid]);
+
+    const rows=alive.map(([pid,p])=>`
+      <div class="controller-row">
+        <strong>${esc(p.name)}</strong>
+        <span>🔒 ເຊື່ອງຜົນໂຫວດ</span>
+        <span class="pill wait">ກຳລັງເລືອກ</span>
+      </div>`).join("");
+
+    view.innerHTML=`<div class="game">
+      <div class="phase">🎯 ໂຫວດເລືອກຄົນຕອບ • 10 ວິນາທີ</div>
+      ${timerHTML(3)}
+      <div class="controller-list">${rows||'<div class="note">ຍັງບໍ່ມີຜູ້ຫຼິ້ນ</div>'}</div>
+      <div class="note">🔒 ຜົນການໂຫວດຈະບໍ່ສະແດງ ຈົນກວ່າເວລາຈະໝົດ ຫຼື ຜູ້ຫຼິ້ນທຸກຄົນເລືອກແລ້ວ</div>
+      ${allVoted?'<div class="note">✓ ທຸກຄົນເລືອກແລ້ວ — ກຳລັງສະຫຼຸບຜົນ...</div>':''}
+    </div>`;
+
+    if(allVoted){
+      setTimeout(resolveVote,150);
+    }else{
+      setPhaseTimer(3,r.phaseStartedAt,resolveVote);
+    }
+    return;
+  }
+
+  if(r.phase==="multiAnswer"){
+    multiAnswerHost(r,alive);return;
+  }
+
+  if(r.phase==="result"){
+    resultHost(r);return;
+  }
+}
+
 async function resolveVote(){
- const s=await db.ref(`rooms/${room}`).get(),r=s.val();
- if(!r||r.phase!=="vote")return;
- const ps=r.players||{},votes=r.votes||{},counts={};
- Object.entries(votes).forEach(([voter,target])=>{if(ps[voter]?.alive!==false && ps[target]?.alive!==false)counts[target]=(counts[target]||0)+1;});
- const alive=Object.entries(ps).filter(([,p])=>p.alive!==false).map(([id])=>id);
- if(!alive.length)return;
- const max=Math.max(...alive.map(pid=>counts[pid]||0));
- const top=alive.filter(pid=>(counts[pid]||0)===max);
- const selected=top[Math.floor(Math.random()*top.length)];
- await db.ref(`rooms/${room}`).update({selectedPlayer:selected,phase:"answerReveal",phaseStartedAt:firebase.database.ServerValue.TIMESTAMP,voteClosed:true});
+  const s=await db.ref(`rooms/${room}`).get(),r=s.val();
+  if(!r||r.phase!=="vote")return;
+  const ps=r.players||{},votes=r.votes||{},counts={};
+  Object.entries(votes).forEach(([voter,target])=>{
+    if(ps[voter]?.alive!==false && ps[target]?.alive!==false && voter!==target) counts[target]=(counts[target]||0)+1;
+  });
+  const alive=Object.entries(ps).filter(([,p])=>p && p.alive!==false).map(([pid])=>pid);
+  const selectedPlayers=alive.filter(pid=>(counts[pid]||0)>0);
+  // Safety fallback: if nobody received a valid vote, everyone alive gets a chance to answer.
+  const finalSelected=selectedPlayers.length?selectedPlayers:alive;
+  const answers={};
+  await db.ref(`rooms/${room}`).update({
+    selectedPlayers:finalSelected,
+    votes: votes,
+    answers,
+    phase:"multiAnswer",
+    phaseStartedAt:firebase.database.ServerValue.TIMESTAMP,
+    answerClosed:false,
+    results:null
+  });
 }
-function answerHost(r){
- const {q,choices}=getQuestionData(r),p=r.players?.[r.selectedPlayer];
- view.innerHTML=`<div class="game"><div class="phase">🧠 ຜູ້ຕອບ: ${esc(p?.name)}</div>${timerHTML(15)}
- <div class="question">${mathText(esc(q.question))}</div>
- <div class="choices">${choices.map(c=>`<div class="choice">${mathText(esc(c))}</div>`).join("")}</div>
- <div class="note">ຜູ້ຫຼິ້ນກຳລັງເລືອກຄຳຕອບ…</div></div>`;
- renderMath();setTimer(15,()=>finishAnswer(false));
+function multiAnswerHost(r,alive){
+  const selected=Array.isArray(r.selectedPlayers)?r.selectedPlayers:[];
+  const {q}=getQuestionData(r);
+
+  view.innerHTML=`
+    <div class="game">
+      <div class="phase">
+        🧠 ຕອບພ້ອມກັນ
+      </div>
+
+      ${timerHTML(15)}
+
+      <div class="question">
+        ${mathText(esc(q.question))}
+      </div>
+
+      <div class="note">
+        ⏳ ກຳລັງລໍຖ້າຄຳຕອບ...
+      </div>
+    </div>`;
+
+  renderMath();
+
+  setPhaseTimer(15,r.phaseStartedAt,()=>resolveMultiAnswers());
+
+  // ถ้าทุกคนตอบแล้ว ให้เปิดผลทันที
+  const answers=r.answers||{};
+  const done=selected.filter(pid=>answers[pid]?.submitted).length;
+
+  if(selected.length && done===selected.length){
+    resolveMultiAnswers();
+  }
 }
 
+async function resolveMultiAnswers(){
+  const ref=db.ref(`rooms/${room}`),s=await ref.get(),r=s.val();
+  if(!r||r.phase!=="multiAnswer"||r.answerClosed)return;
+  const selected=Array.isArray(r.selectedPlayers)?r.selectedPlayers:[];
+  const answers=r.answers||{};
+  if(!selected.length){await ref.update({phase:"result",answerClosed:true,results:{}});return;}
+  const results={};
+  selected.forEach(pid=>{const a=answers[pid];results[pid]={submitted:!!a?.submitted,correct:!!a?.submitted&&a.correct===true,choice:a?.choice??null};});
+  const updates={answerClosed:true,results};
+  const correctIds=[],wrongIds=[];
+  selected.forEach(pid=>results[pid].correct?correctIds.push(pid):wrongIds.push(pid));
+  const alive={...(r.players||{})};
+  wrongIds.forEach(pid=>{if(alive[pid]) alive[pid]={...alive[pid],alive:false};});
+  Object.entries(alive).forEach(([pid,p])=>{if(p && wrongIds.includes(pid)) updates[`players/${pid}/alive`]=false;});
+  correctIds.forEach(pid=>{updates[`players/${pid}/score`]=(Number(alive[pid]?.score)||0)+1;});
+  const survivors=Object.entries(alive).filter(([,p])=>p && p.alive!==false).map(([pid])=>pid);
+  if(survivors.length<=1){
+    const winnerId=survivors[0]||null;
+    updates.phase="winner";updates.winnerId=winnerId;updates.winnerName=winnerId?(alive[winnerId]?.name||""):"";
+  }else{
+    updates.phase="result";
+    updates.phaseStartedAt=firebase.database.ServerValue.TIMESTAMP;
+  }
+  await ref.update(updates);
+}
+
+function resultHost(r){
+  const ps=r.players||{},results=r.results||{},selected=Array.isArray(r.selectedPlayers)?r.selectedPlayers:[];
+  const rows=selected.map(pid=>{
+    const p=ps[pid],res=results[pid];
+    return `<div class="selected-card ${res?.correct?'good':'bad'}"><strong>${esc(p?.name||"")}</strong><span>${res?.submitted?(res.correct?'✓ ຖືກ':'✕ ຜິດ'):'⌛ ໝົດເວລາ — ຖືກນັບເປັນຜິດ'}</span></div>`;
+  }).join("");
+  const alive=Object.entries(ps).filter(([,p])=>p && p.alive!==false);
+  view.innerHTML=`<div class="center"><div class="result neutral"><h2>📋 ສະຫຼຸບຮອບ ${Number(r.round||1)}</h2><p>ຜູ້ທີ່ຖືກເລືອກຕອບພ້ອມກັນ</p></div>
+    <div class="selected-players">${rows}</div><div class="note">ຜູ້ຕອບຖືກໄປຕໍ່. ຜູ້ຕອບຜິດແພ້ທັນທີ.</div>
+    <div class="actions">${alive.length>1?'<button class="btn primary" onclick="nextRound()">➡️ ເລີ່ມຮອບຕໍ່ໄປ</button>':'<button class="btn primary" onclick="nextRound()">🏆 ສະແດງຜູ້ຊະນະ</button>'}</div>
+  </div>`;
+}
 async function leaveGameAfterLoss(){
   clearInterval(timerHandle);
   if(listenRef){listenRef.off();listenRef=null;}
@@ -512,632 +646,146 @@ function duelScoreHTML(r){
 }
 function playerGame(r){
   clearInterval(timerHandle);
-
-  /* =========================
-     GAME WINNER
-     ========================= */
   if(r.phase==="winner"){
-    if(me?.id===r.winnerId){
-      const winnerName=
-        r.winnerName ||
-        r.players?.[r.winnerId]?.name ||
-        "";
-
-      view.innerHTML=`
-        <div class="center">
-          <div class="result good">
-            <h1>🏆</h1>
-            <h2>ຜູ້ຊະນະ</h2>
-            <p style="font-size:clamp(28px,5vw,48px);font-weight:900;color:var(--text)">
-              ${esc(winnerName)}
-            </p>
-            <p>🎉 ຂໍຊົມເຊີຍ!</p>
-          </div>
-        </div>
-      `;
-    }else if(me?.id===r.eliminatedPlayer){
-      view.innerHTML=`
-        <div class="center">
-          <div class="result bad">
-            <h1>💥</h1>
-            <h2>ທ່ານແພ້ແລ້ວ</h2>
-            <p>ທ່ານຖືກລົບອອກຈາກເກມ</p>
-            <div class="actions">
-              <button class="btn primary" onclick="leaveGameAfterLoss()">
-                ອອກຈາກເກມ
-              </button>
-            </div>
-          </div>
-        </div>
-      `;
-    }else{
-      const winnerName=
-        r.winnerName ||
-        r.players?.[r.winnerId]?.name ||
-        "";
-
-      view.innerHTML=`
-        <div class="center">
-          <div class="result neutral">
-            <h2>🏆 ເກມຈົບແລ້ວ</h2>
-            <p>ຜູ້ຊະນະ</p>
-            <p style="font-size:clamp(28px,5vw,48px);font-weight:900;color:var(--text)">
-              ${esc(winnerName)}
-            </p>
-          </div>
-        </div>
-      `;
-    }
-
+    const winnerName=r.winnerName||r.players?.[r.winnerId]?.name||"";
+    if(me?.id===r.winnerId){view.innerHTML=`<div class="center"><div class="result good"><h1>🏆</h1><h2>ຜູ້ຊະນະ</h2><p style="font-size:clamp(28px,5vw,48px);font-weight:900;color:var(--text)">${esc(winnerName)}</p><p>🎉 ຂໍສະແດງຄວາມຍິນດີ!</p></div></div>`;}
+    else if(me?.id===r.eliminatedPlayer || r.players?.[me?.id]?.alive===false){view.innerHTML=`<div class="center"><div class="result bad"><h1>💥</h1><h2>ທ່ານແພ້ແລ້ວ</h2><p>ຜູ້ຊະນະ: ${esc(winnerName)}</p><div class="actions"><button class="btn primary" onclick="leaveGameAfterLoss()">ອອກຈາກເກມ</button></div></div></div>`;}
+    else{view.innerHTML=`<div class="center"><div class="result neutral"><h2>🏆 ເກມຈົບແລ້ວ</h2><p>ຜູ້ຊະນະ: <b>${esc(winnerName)}</b></p></div></div>`;}
     return;
   }
-
-
-  /* =========================
-     DUEL READY
-     ========================= */
-  if(r.phase==="duelReady"){
-    view.innerHTML=`
-      <div class="center">
-        <span class="duel-round">⚔️ ຮອບຕັດສິນ</span>
-        <h1>👑</h1>
-        <h2>2 ຄົນສຸດທ້າຍ</h2>
-        <p>ຜັດກັນຕອບຄົນລະຂໍ້</p>
-        ${timerHTML(2)}
-      </div>
-    `;
-
-    setPhaseTimer(2,r.phaseStartedAt,null);
-    return;
+  const mePlayer=r.players?.[me?.id];
+  if(!mePlayer || mePlayer.alive===false){
+    view.innerHTML=`<div class="center"><div class="result bad"><h2>ທ່ານບໍ່ຢູ່ໃນເກມນີ້ແລ້ວ</h2><p>ກຳລັງອອກ...</p></div></div>`;
+    setTimeout(()=>leaveGameAfterLoss(),1200);return;
   }
-
-
-  /* =========================
-     DUEL ANSWER REVEAL
-     ========================= */
-  if(r.phase==="duelAnswerReveal"){
-    const selected=r.selectedPlayer===me?.id;
-
-    view.innerHTML=`
-      <div class="center">
-        <h1>${selected?"🎯":"⏳"}</h1>
-        <h2>${selected?"ຮອດຄິວຂອງທ່ານ":"ລໍຖ້າຄູ່ແຂ່ງ"}</h2>
-        <p>
-          ${selected
-            ?"ກຽມຕົວຕອບຄຳຖາມ"
-            :"ຄູ່ແຂ່ງກຳລັງກຽມຕົວ"}
-        </p>
-        ${timerHTML(3)}
-      </div>
-    `;
-
-    setPhaseTimer(3,r.phaseStartedAt,null);
-    return;
+  if(r.phase==="questionPreview"){
+    const {q}=getQuestionData(r);view.innerHTML=`<div class="game"><div class="phase">📖 ຮອບ ${Number(r.round||1)} • ກຽມຄຳຖາມ</div>${timerHTML(3)}<div class="question">${mathText(esc(q.question))}</div><div class="note">ກຽມໂຫວດໃຫ້ເພື່ອນ…</div></div>`;renderMath();setPhaseTimer(3,r.phaseStartedAt,null);return;
   }
-
-
-  /* =========================
-     DUEL ANSWER
-     ========================= */
-  if(r.phase==="duelAnswer"){
-    if(r.selectedPlayer===me?.id){
-      duelAnswerPlayer(r);
-      return;
-    }
-
-    view.innerHTML=`
-      <div class="center">
-        <h2>
-          ⏳ ກຳລັງໃຫ້
-          ${esc(r.players?.[r.selectedPlayer]?.name||"")}
-          ຕອບ
-        </h2>
-        ${timerHTML(15)}
-        <p>ລໍຖ້າຄູ່ແຂ່ງຕອບ…</p>
-      </div>
-    `;
-
-    setPhaseTimer(15,r.phaseStartedAt,null);
-    return;
-  }
-
-
-  /* =========================
-     DUEL REVIEW
-     ========================= */
-  if(r.phase==="duelReview"){
-    const ids=Object.keys(r.duelScores||{});
-
-    if(ids.length<2){
-      view.innerHTML=`
-        <div class="center">
-          <div class="result neutral">
-            <h2>⏳ ລໍຖ້າຜົນ...</h2>
-          </div>
-        </div>
-      `;
-      return;
-    }
-
-    const a=ids[0];
-    const b=ids[1];
-
-    const sa=Number(r.duelScores?.[a]||0);
-    const sb=Number(r.duelScores?.[b]||0);
-
-    const tie=sa===sb;
-
-    if(tie){
-      view.innerHTML=`
-        <div class="center">
-          ${duelScoreHTML(r)}
-
-          <div class="result neutral">
-            <h2>🤝 ສະເໝີ</h2>
-            <p>ຄະແນນ ${sa} - ${sb}</p>
-            <p>⏳ ລໍຖ້າເກມຖັດໄປ...</p>
-          </div>
-        </div>
-      `;
-    }else{
-      const winnerId=sa>sb?a:b;
-      const loserId=winnerId===a?b:a;
-
-      const winnerName=
-        r.players?.[winnerId]?.name ||
-        "";
-
-      const loserName=
-        r.players?.[loserId]?.name ||
-        "";
-
-      if(me?.id===winnerId){
-        view.innerHTML=`
-          <div class="center">
-            ${duelScoreHTML(r)}
-
-            <div class="result good">
-              <h2>🏆 ທ່ານຊະນະ!</h2>
-              <p>ຜູ້ແພ້: ${esc(loserName)}</p>
-              <p>ຄະແນນ ${sa} - ${sb}</p>
-              <p>⏳ ກຳລັງປະກາດຜູ້ຊະນະ...</p>
-            </div>
-          </div>
-        `;
-      }else{
-        view.innerHTML=`
-          <div class="center">
-            ${duelScoreHTML(r)}
-
-            <div class="result bad">
-              <h2>💥 ທ່ານແພ້ແລ້ວ</h2>
-              <p>ຜູ້ຊະນະ: ${esc(winnerName)}</p>
-              <p>ຄະແນນ ${sa} - ${sb}</p>
-              <p>⏳ ກຳລັງປະກາດຜູ້ຊະນະ...</p>
-            </div>
-          </div>
-        `;
-      }
-    }
-
-    return;
-  }
-
-
-  /* =========================
-     DUEL RESULT
-     ========================= */
-  if(r.phase==="duelResult"){
-    const ids=Object.keys(r.duelScores||{});
-
-    if(ids.length<2){
-      view.innerHTML=`
-        <div class="center">
-          <div class="result neutral">
-            <h2>⏳ ລໍຖ້າຜົນ...</h2>
-          </div>
-        </div>
-      `;
-      return;
-    }
-
-    const a=ids[0];
-    const b=ids[1];
-
-    const sa=Number(r.duelScores?.[a]||0);
-    const sb=Number(r.duelScores?.[b]||0);
-
-    const tie=sa===sb;
-    const winnerId=tie?null:(sa>sb?a:b);
-
-    if(tie){
-      view.innerHTML=`
-        <div class="center">
-          ${duelScoreHTML(r)}
-
-          <div class="result neutral">
-            <h2>🤝 ສະເໝີ</h2>
-            <p>ຄະແນນ ${sa} - ${sb}</p>
-            <p>⏳ ລໍຖ້າເກມຖັດໄປ...</p>
-          </div>
-        </div>
-      `;
-    }else{
-      const loserId=winnerId===a?b:a;
-
-      const winnerName=
-        r.players?.[winnerId]?.name ||
-        r.winnerName ||
-        "";
-
-      const loserName=
-        r.players?.[loserId]?.name ||
-        "";
-
-      if(me?.id===winnerId){
-        view.innerHTML=`
-          <div class="center">
-            ${duelScoreHTML(r)}
-
-            <div class="result good">
-              <h2>🏆 ທ່ານຊະນະ!</h2>
-              <p>ຜູ້ແພ້: ${esc(loserName)}</p>
-              <p>ຄະແນນ ${sa} - ${sb}</p>
-            </div>
-          </div>
-        `;
-      }else{
-        view.innerHTML=`
-          <div class="center">
-            ${duelScoreHTML(r)}
-
-            <div class="result bad">
-              <h2>💥 ທ່ານແພ້ແລ້ວ</h2>
-              <p>ຜູ້ຊະນະ: ${esc(winnerName)}</p>
-              <p>ຄະແນນ ${sa} - ${sb}</p>
-            </div>
-          </div>
-        `;
-      }
-    }
-
-    return;
-  }
-
-
-  /* =========================
-     NORMAL VOTE
-     ========================= */
   if(r.phase==="vote"){
-    const myPlayer=r.players?.[me?.id];
-
-    if(!myPlayer || myPlayer.alive===false){
-      clearInterval(timerHandle);
-
-      view.innerHTML=`
-        <div class="center">
-          <div class="result bad">
-            <h2>ທ່ານບໍ່ຢູ່ໃນເກມນີ້ແລ້ວ</h2>
-            <p>ກຳລັງອອກຈາກເກມ...</p>
-          </div>
-        </div>
-      `;
-
-      setTimeout(()=>leaveGameAfterLoss(),1000);
-      return;
+    const ps=r.players||{};
+    const voted=!!r.votes?.[me.id];
+    const buttons=Object.entries(ps).filter(([,p])=>p && p.alive!==false && !Object.is(me.id,undefined)).map(([pid,p])=>{
+      if(pid===me.id)return '';
+      const chosen=r.votes?.[me.id]===pid;
+      return `<button class="vote ${chosen?'selected':''}" ${voted?'disabled':''} onclick="vote('${pid}')">${esc(p.name)}${chosen?' ✓ ເລືອກແລ້ວ':''}</button>`;
+    }).join('');
+    view.innerHTML=`<div class="game"><div class="phase">🎯 ເລືອກເພື່ອນ 1 ຄົນໃຫ້ຕອບ • 10 ວິນາທີ</div>${timerHTML(3)}<div class="votegrid">${buttons}</div><div class="note">ຫ້າມເລືອກຕົນເອງ. ເພື່ອນທີ່ໄດ້ຮັບໂຫວດຈະໄດ້ຕອບພ້ອມກັນ.</div></div>`;
+    setPhaseTimer(3,r.phaseStartedAt,null);return;
+  }
+  if(r.phase==="multiAnswer"){
+    const selected=Array.isArray(r.selectedPlayers)?r.selectedPlayers:[];
+    if(selected.includes(me.id)) multiAnswerPlayer(r);
+    else{
+      const names=selected.map(pid=>esc(r.players?.[pid]?.name||'')).join(', ');
+      view.innerHTML=`<div class="center"><div class="spectator"><h2>👀 ທ່ານເປັນຜູ້ຊົມ</h2><p>ທ່ານບໍ່ຖືກເລືອກໃນຮອບນີ້</p><p>ຜູ້ຕອບ: <b>${names||'—'}</b></p><p>ກຽມຕົວສຳລັບຮອບຕໍ່ໄປ</p></div>${timerHTML(15)}</div>`;
+      setPhaseTimer(15,r.phaseStartedAt,null);
     }
-
-    const can=true;
-
-    const chosen=r.votes?.[me.id];
-
-    const chosenName=
-      chosen
-        ? r.players?.[chosen]?.name
-        : "";
-
-    view.innerHTML=`
-      <div class="game">
-
-        <div class="phase">
-          🎯 ກຳຈັດຈຸດອ່ອນ • 10 ວິນາທີ
-        </div>
-
-        ${timerHTML(10)}
-
-        ${
-          chosen
-            ? `
-              <div class="vote-picked">
-                <div class="vote-picked-icon">✓</div>
-                <h2>ເລືອກຄົນນີ້ແລ້ວ</h2>
-                <p><b>${esc(chosenName||"")}</b></p>
-                <span>ລໍຖ້າຜູ້ຫຼິ້ນຄົນອື່ນ…</span>
-              </div>
-            `
-            : `
-              <p style="text-align:center">
-                ເລືອກຄົນທີ່ທ່ານຕ້ອງການໃຫ້ຕອບ
-              </p>
-
-              <div class="votegrid">
-                ${can?playersHTML(r.players,true,r):""}
-              </div>
-            `
-        }
-
-        <div class="note">
-          ກົດເລືອກໄດ້ພຽງ 1 ຄັ້ງ •
-          ບໍ່ກົດເລືອກ = ສະລະສິດ
-          ແລະບໍ່ຖືກນັບເປັນຄະແນນໂຫວດ
-        </div>
-
-      </div>
-    `;
-
-    setPhaseTimer(10,r.phaseStartedAt,null);
     return;
   }
+  if(r.phase==="result"){
+    const res=r.results?.[me.id];
+    view.innerHTML=`<div class="center"><div class="result neutral"><h2>📋 ຈົບຮອບ</h2><p>${res? (res.correct?'✓ ທ່ານຕອບຖືກ — ໄດ້ໄປຕໍ່':'✕ ທ່ານຕອບຜິດ — ແພ້ແລ້ວ') : '👀 ທ່ານຮັບຊົມຮອບນີ້'}</p><p>ກຳລັງກຽມຮອບຕໍ່ໄປ...</p></div></div>`;
+    return;
+  }
+  view.innerHTML=`<div class="center"><h2>✨ ກຳລັງກຽມຮອບຕໍ່ໄປ...</h2></div>`;
+}
+function multiAnswerPlayer(r){
+  const answer = r.answers?.[me.id];
+  const {q,choices} = getQuestionData(r);
 
-
-  /* =========================
-     NORMAL ANSWER REVEAL
-     ========================= */
-  if(r.phase==="answerReveal"){
-    const selected=r.selectedPlayer===me?.id;
-
+  // ถ้าคนนี้ตอบไปแล้ว:
+  // ซ่อนผลการตอบ และซ่อนว่าเลือกอะไร
+  // ให้เห็นเพียงว่ากำลังรอจนกว่ารอบจะจบ
+  if(answer?.submitted){
     view.innerHTML=`
       <div class="center">
-        <h1>${selected?"🎯":"⏳"}</h1>
-
-        <h2>
-          ${selected
-            ?"ທ່ານຖືກເລືອກ"
-            :"ກຳລັງລໍຖ້າ"}
-        </h2>
-
-        <p>
-          ${selected
-            ?"ກຽມຕົວຕອບຄຳຖາມ"
-            :"ຜູ້ຕອບກຳລັງກຽມຕົວ"}
-        </p>
-
-        ${timerHTML(3)}
-      </div>
-    `;
-
-    setPhaseTimer(3,r.phaseStartedAt,null);
-    return;
-  }
-
-
-  /* =========================
-     NORMAL ANSWER
-     ========================= */
-  if(r.phase==="answer" && r.selectedPlayer===me?.id){
-    answerPlayer(r);
-    return;
-  }
-
-  if(r.phase==="answer"){
-    view.innerHTML=`
-      <div class="center">
-        <h2>
-          ⏳ ກຳລັງໃຫ້
-          ${esc(r.players?.[r.selectedPlayer]?.name||"")}
-          ຕອບ
-        </h2>
-
-        ${timerHTML(15)}
-      </div>
-    `;
-
+        <div class="result neutral">
+          <h2>⏳ ກຳລັງລໍຖ້າ...</h2>
+          <p>ລໍຖ້າຜູ້ອື່ນຕອບຄົບ ຫຼື ເວລາໝົດ</p>
+          ${timerHTML(15)}
+        </div>
+      </div>`;
     setPhaseTimer(15,r.phaseStartedAt,null);
     return;
   }
 
-
-  /* =========================
-     NORMAL RESULT
-     ========================= */
-  if(r.phase==="result"){
-    resultPlayer(r);
-    return;
-  }
-
-
-  /* =========================
-     DEFAULT
-     ========================= */
+  // ยังไม่ตอบ: แสดงคำถามและตัวเลือกตามปกติ
   view.innerHTML=`
-    <div class="center">
-      <h2>✨ ກຳລັງກຽມຮອບຕໍ່ໄປ...</h2>
-    </div>
-  `;
-}
-
-/* เพิ่มตรงนี้ */
-function winnerScreen(r){
-  const winnerName=
-    r.winnerName ||
-    r.players?.[r.winnerId]?.name ||
-    "";
-
-  view.innerHTML=`
-    <div class="center">
-      <div class="result good">
-        <h1>🏆</h1>
-        <h2>ຜູ້ຊະນະ</h2>
-        <p style="font-size:clamp(28px,5vw,48px);font-weight:900;color:var(--text)">
-          ${esc(winnerName)}
-        </p>
-        <p>🎉 ຂໍສະແດງຄວາມຍິນດີ!</p>
+    <div class="game">
+      <div class="phase">
+        🧠 ທ່ານຖືກເລືອກ • ຕອບພ້ອມກັນ
       </div>
-    </div>
-  `;
+
+      ${timerHTML(15)}
+
+      <div class="question">
+        ${mathText(esc(q.question))}
+      </div>
+
+      <div class="choices">
+        ${choices.map((c,i)=>`
+          <button class="choice" onclick="submitMultiAnswer(${i})">
+            ${mathText(esc(c))}
+          </button>
+        `).join('')}
+      </div>
+
+      <div class="note">
+        ຕອບແລ້ວຈະບໍ່ສະແດງຜົນຈົນກວ່າທຸກຄົນຈະຕອບຄົບ ຫຼື ເວລາໝົດ
+      </div>
+    </div>`;
+
+  renderMath();
+
+  setPhaseTimer(
+    15,
+    r.phaseStartedAt,
+    ()=>submitMultiAnswer(-1)
+  );
 }
+
+function winnerScreen(r){
+  const winnerName=r.winnerName||r.players?.[r.winnerId]?.name||"";
+  view.innerHTML=`<div class="center"><div class="result good"><h1>🏆</h1><h2>ຜູ້ຊະນະ</h2><p style="font-size:clamp(28px,5vw,48px);font-weight:900;color:var(--text)">${esc(winnerName)}</p><p>🎉 ຂໍສະແດງຄວາມຍິນດີ!</p></div></div>`;
+}
+
 async function vote(target){
-  if(!me||!room)return;
-
-  const snap=await db.ref(`rooms/${room}`).get();
-  const r=snap.val();
-
-  if(!r || r.phase!=="vote" || r.votes?.[me.id])return;
-
-  if(!r.players?.[me.id] || r.players[me.id].alive===false)return;
-
-  if(!r.players?.[target] || r.players[target].alive===false)return;
-
+  if(!me||!room||!dbReady())return;
+  const snap=await db.ref(`rooms/${room}`).get(),r=snap.val();
+  if(!r||r.phase!=="vote"||r.votes?.[me.id])return;
+  if(target===me.id)return;
+  if(!r.players?.[me.id]||r.players[me.id].alive===false)return;
+  if(!r.players?.[target]||r.players[target].alive===false)return;
   await db.ref(`rooms/${room}/votes/${me.id}`).set(target);
 }
-function answerPlayer(r){
- const {q,choices}=getQuestionData(r);
- view.innerHTML=`<div class="game"><div class="phase">🧠 ຕອບຄຳຖາມ • 15 ວິນາທີ</div>${timerHTML(15)}
- <div class="question">${mathText(esc(q.question))}</div>
- <div class="choices">${choices.map((c,i)=>`<button class="choice" onclick="submitAnswer(${i})">${mathText(esc(c))}</button>`).join("")}</div></div>`;
- renderMath();setTimer(15,()=>submitAnswer(-1));
+
+async function submitMultiAnswer(i){
+  clearInterval(timerHandle);
+  if(!me||!room)return;
+  const ref=db.ref(`rooms/${room}`),r=(await ref.get()).val();
+  if(!r||r.phase!=="multiAnswer")return;
+  const selected=Array.isArray(r.selectedPlayers)?r.selectedPlayers:[];
+  if(!selected.includes(me.id)||r.answers?.[me.id]?.submitted)return;
+  const {q,choices}=getQuestionData(r);
+  const correct=i>=0&&choices[i]===q.answer;
+  await ref.child(`answers/${me.id}`).set({submitted:true,choice:i,correct,answeredAt:firebase.database.ServerValue.TIMESTAMP});
 }
-async function submitAnswer(i){clearInterval(timerHandle);const r=(await db.ref("rooms/"+room).get()).val();if(r.phase!=="answer"||r.selectedPlayer!==me.id)return;const {q,choices}=getQuestionData(r),correct=i>=0&&choices[i]===q.answer;await finishAnswer(correct)}
-async function finishAnswer(correct){
-  const s=await db.ref("rooms/"+room).get(),r=s.val();
-  if(!r||r.phase!=="answer")return;
-  const pid=r.selectedPlayer, name=r.players?.[pid]?.name||"";
-  if(correct){
-    await db.ref(`rooms/${room}/players/${pid}/score`).transaction(x=>(Number(x)||0)+1);
-    await db.ref(`rooms/${room}`).update({phase:"result",lastResult:"correct",lastResultName:name,eliminatedPlayer:null});
-  }else{
-    await db.ref(`rooms/${room}`).update({
-      phase:"result",
-      lastResult:"wrong",
-      lastResultName:name,
-      eliminatedPlayer:pid
-    });
-    // Mark eliminated immediately so the player can never be selected again.
-    await db.ref(`rooms/${room}/players/${pid}/alive`).set(false);
-    // Remove the eliminated player record after the result screen has had time
-    // to display. Other players remain in the shared room.
-    setTimeout(async()=>{
-      try{
-        const s=await db.ref(`rooms/${room}/phase`).get();
-        if(s.val()==="result") await db.ref(`rooms/${room}/players/${pid}`).remove();
-      }catch(e){ console.error("Remove wrong-answer player error:",e); }
-    },3000);
-  }
-}
-function resultHost(r){
-  const good=r.lastResult==="correct",ps=r.players||{};
-  const name=r.lastResultName||ps[r.selectedPlayer]?.name||"";
-  const alive=Object.entries(ps).filter(([,p])=>p.alive!==false);
-  view.innerHTML=`<div class="center"><div class="result ${good?"good":"bad"}">
-    <h1>${good?"✓":"✕"}</h1><h2>${good?"ຕອບຖືກ!":"ຕອບຜິດ!"}</h2>
-    <p>${good?`🎉 ${esc(name)} ຕອບຖືກ ແລະ ໄດ້ໄປຕໍ່`:`💥 ${esc(name)} ແພ້ ແລະ ຖືກລົບອອກຈາກລະບົບ`}</p>
-  </div><div class="actions">${alive.length>1?`<button class="btn primary" onclick="nextRound()">ຮອບຖັດໄປ</button>`:`<button class="btn primary" onclick="nextRound()">ສະແດງຜູ້ຊະນະ</button>`}</div></div>`;
-}
-function resultPlayer(r){
-  const ps=r.players||{},pid=r.selectedPlayer,name=r.lastResultName||ps[pid]?.name||"";
-  if(r.lastResult==="wrong" && r.eliminatedPlayer===me?.id){
-    clearInterval(timerHandle);
-    view.innerHTML=`<div class="center"><div class="result bad"><h1>❌</h1>
-      <h2>ທ່ານຕອບຜິດ — ແພ້ແລ້ວ</h2>
-      <p>${esc(name)} ຖືກລົບອອກຈາກເກມ</p>
-      <p>ຈະອອກຈາກເກມໃນ 3 ວິນາທີ...</p>
-    </div></div>`;
-    setTimeout(()=>{ leaveGameAfterLoss(); },3000);
+
+async function nextRound(){
+  if(!dbReady()||!room)return;
+  const ref=db.ref(`rooms/${room}`),r=(await ref.get()).val();
+  if(!r||r.phase!=="result")return;
+  const alive=Object.entries(r.players||{}).filter(([,p])=>p&&p.alive!==false);
+  if(alive.length<=1){
+    const winnerId=alive[0]?.[0]||null;
+    await ref.update({phase:"winner",winnerId,winnerName:winnerId?(alive[0][1].name||""):"",eliminatedPlayer:null,phaseStartedAt:firebase.database.ServerValue.TIMESTAMP});
     return;
   }
-const alive = Object.entries(r.players || {})
-  .filter(([, p]) => p.alive !== false);
-
-if (alive.length <= 1) {
-  const winnerId = alive[0]?.[0] || null;
-  const winnerName = alive[0]?.[1]?.name || "";
-
-  view.innerHTML = `<div class="center">
-    <div class="result good">
-      <h1>🏆</h1>
-      <h2>ຜູ້ຊະນະ</h2>
-      <p style="font-size:clamp(28px,5vw,48px);font-weight:900;color:var(--text)">
-        ${esc(winnerName)}
-      </p>
-      <p>🎉 ຂໍສະແດງຄວາມຊົມເຊີຍ!</p>
-    </div>
-  </div>`;
-
-  return;
-}
-
-view.innerHTML=`<div class="center"><div class="result ${r.lastResult==="correct"?"good":"bad"}">
-  <h1>${r.lastResult==="correct"?"✓":"✕"}</h1>
-  <h2>${r.lastResult==="correct"?`🎉 ${esc(name)} ຕອບຖືກ`:`💥 ${esc(name)} ແພ້ແລ້ວ`}</h2>
-  <p>ກຽມພ້ອມສຳລັບຂໍ້ຖັດໄປ...</p>
-</div></div>`;
-}
-async function nextRound(){
- const r=(await db.ref("rooms/"+room).get()).val();
- const alive=Object.entries(r.players||{}).filter(([,p])=>p.alive!==false);
- if(alive.length<=1){
-   await db.ref("rooms/"+room).update({phase:"winner",winnerId:alive[0]?.[0]||null});return;
- }
- if(alive.length===2){
-   const a=alive[0][0],b=alive[1][0];
-   await db.ref("rooms/"+room).update({
-     phase:"duelReady",round:(r.round||1)+1,duelRound:1,duelIndex:0,
-     duelScores:{[a]:0,[b]:0},duelAnswered:{},
-     currentQuestion:((r.currentQuestion||0)+1)%QUESTIONS.length
-   });return;
- }
- await db.ref("rooms/"+room).update({
-   phase:"questionPreview",round:(r.round||1)+1,
-   currentQuestion:((r.currentQuestion||0)+1)%QUESTIONS.length,votes:{}
- });
-}
-async function revealDuelScore(){
-  if(!dbReady()||!room)return;
-  const r=(await db.ref("rooms/"+room).get()).val();
-  if(!r||r.phase!=="duelReview")return;
-  await db.ref("rooms/"+room).update({phase:"duelResult",phaseStartedAt:firebase.database.ServerValue.TIMESTAMP});
-}
-
-async function finishDuelWinner(winnerId, loserId){
-  if(!room || !winnerId || !loserId || winnerId===loserId)return;
-
-  const s=await db.ref("rooms/"+room).get();
-  const r=s.val();
-
-  if(!r || (r.phase!=="duelReview" && r.phase!=="duelResult"))return;
-
-  const winnerName=r.players?.[winnerId]?.name||"";
-  const loserName=r.players?.[loserId]?.name||"";
-
-  await db.ref("rooms/"+room).update({
-    phase:"winner",
-    winnerId,
-    winnerName,
-    eliminatedPlayer:loserId,
-    eliminatedName:loserName,
-    phaseStartedAt:firebase.database.ServerValue.TIMESTAMP
-  });
-
-  await db.ref(`rooms/${room}/players/${loserId}`).remove();
-}
-
-async function nextDuelGame(){
-  if(!dbReady()||!room)return;
-  const r=(await db.ref("rooms/"+room).get()).val();
-  if(!r||r.phase!=="duelReview")return;
-  const ids=Object.keys(r.duelScores||{}),a=ids[0],b=ids[1];
-  if(!a||!b||Number(r.duelScores?.[a]||0)!==Number(r.duelScores?.[b]||0))return;
-
-  const nextPid=r.selectedPlayer;
-
-  await db.ref("rooms/"+room).update({
-    duelRound:Number(r.duelRound||1)+1,
-    duelScores:{...(r.duelScores||{})},
-    duelAnswered:{},
-    duelIndex:nextPid===a?0:1,
-    currentQuestion:((r.currentQuestion||0)+1)%QUESTIONS.length,
-    phase:"duelAnswerReveal",
-    selectedPlayer:nextPid,
+  await ref.update({
+    phase:"questionPreview",
+    round:Number(r.round||1)+1,
+    currentQuestion:((Number(r.currentQuestion)||0)+1)%QUESTIONS.length,
+    votes:{},selectedPlayers:[],answers:{},results:null,answerClosed:false,
     phaseStartedAt:firebase.database.ServerValue.TIMESTAMP
   });
 }
